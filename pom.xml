@@ -17,6 +17,7 @@
         <commons-io.version>2.6</commons-io.version>
         <junit.version>2.6</junit.version>
         <commons-lang.version>2.6</commons-lang.version>
+        <elasticsearch.version>7.6.2</elasticsearch.version>
     </properties>
 
     <dependencies>
@@ -58,6 +59,23 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>${commons-lang.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+            <version>${elasticsearch.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${elasticsearch.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
         </dependency>
 
     </dependencies>

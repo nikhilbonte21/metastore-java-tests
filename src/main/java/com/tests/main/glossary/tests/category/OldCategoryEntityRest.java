@@ -5,16 +5,18 @@ import org.apache.atlas.AtlasErrorCode;
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.model.glossary.AtlasGlossary;
 import org.apache.atlas.model.glossary.AtlasGlossaryCategory;
+import org.apache.atlas.model.instance.AtlasEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Map;
 
 import static com.tests.main.glossary.utils.TestUtils.*;
 import static org.junit.Assert.*;
 
-public class Category {
-    private static final Logger LOG = LoggerFactory.getLogger(Category.class);
+public class OldCategoryEntityRest {
+    private static final Logger LOG = LoggerFactory.getLogger(OldCategoryEntityRest.class);
 
     private static final int ALREADY_EXIST_STATUS_CODE = AtlasErrorCode.GLOSSARY_CATEGORY_ALREADY_EXISTS.getHttpCode().getStatusCode();
     private static final String ALREADY_EXIST_ERROR_CODE = AtlasErrorCode.GLOSSARY_CATEGORY_ALREADY_EXISTS.getErrorCode();
@@ -24,16 +26,16 @@ public class Category {
     }
 
     public static void run() throws Exception {
-        LOG.info("Running Category tests");
+        LOG.info("Running CategoryEntityRest tests");
 
         long start = System.currentTimeMillis();
         try {
             testUpdateCategory();
             testUpdateParent();
-            testCreateDupCat();
-            testUpdateDupCat();
+            //testCreateDupCat();
+            //testUpdateDupCat();
             changeAnotherAnchorNotAllowed();
-            changeParentInAnotherAnchorNotAllowed();
+            //changeParentInAnotherAnchorNotAllowed();
 
             //TODO
             //changeCatParent();
@@ -41,98 +43,106 @@ public class Category {
             throw e;
         } finally {
             cleanUpAll();
-            LOG.info("Completed running Category tests, took {} seconds", (System.currentTimeMillis() - start) / 1000 );
+            LOG.info("Completed running CategoryEntityRest tests, took {} seconds", (System.currentTimeMillis() - start) / 1000 );
         }
     }
 
-    private static void testUpdateCategory() throws AtlasServiceException {
+    private static void testUpdateCategory() throws Exception {
         LOG.info(">> testUpdateCategory");
-        AtlasGlossary glossary = createGlossary(getGlossaryModel(getRandomName()));
+        AtlasEntity glossary = createGlossary();
+        String gloGUID = glossary.getGuid();
+        String gloQname = (String) glossary.getAttribute(QUALIFIED_NAME);
 
-        AtlasGlossaryCategory category_0 = createCategory(getCategoryModel(glossary.getGuid()));
-        AtlasGlossaryCategory category_1 = createCategory(getCategoryModelWithParent(glossary.getGuid(), getCategoryParentModel(category_0)));
+        AtlasEntity category_0 = getEntity(createCategory(gloGUID, null).getGuid());
+        AtlasEntity category_1 = getEntity(createCategory(gloGUID, category_0.getGuid()).getGuid());
 
-        AtlasGlossaryCategory toUpdate = getCategory(category_1.getGuid());
-        assertNull(toUpdate.getAdditionalAttributes());
-        toUpdate.setAdditionalAttributes(Collections.singletonMap("key_0", "value_0"));
-        updateCategory(category_1.getGuid(), toUpdate);
 
-        AtlasGlossaryCategory updatedCat = getCategory(category_1.getGuid());
-        assertEquals(updatedCat.getQualifiedName(), getNanoid(category_0.getQualifiedName()) + "." + getNanoid(category_1.getQualifiedName()) + "@" + glossary.getQualifiedName());;
-        assertNotNull(updatedCat.getAdditionalAttributes());
-        assertEquals(updatedCat.getAdditionalAttributes().size(), 1);
+        String cat_0_nanoId = getNanoid(getQualifiedName(category_0));
+        String cat_1_nanoId = getNanoid(getQualifiedName(category_1));
+
+        assertEquals(getQualifiedName(category_0), concat(cat_0_nanoId, gloQname));
+        assertEquals(getQualifiedName(category_1), concat(cat_1_nanoId, gloQname));
+
+        category_1.setAttribute("additionalAttributes", Collections.singletonMap("key_0", "value_0"));
+        createEntity(new AtlasEntity.AtlasEntityWithExtInfo(category_1));
+
+        category_1 = getEntity(category_1.getGuid());
+        assertNotNull(category_1.getAttribute("additionalAttributes"));
+        Map<String, String> map = (Map<String, String>) category_1.getAttribute("additionalAttributes");
+        assertEquals(map.size(), 1);
 
         LOG.info("<< testUpdateCategory");
     }
 
-    private static void testUpdateParent() throws AtlasServiceException {
+    //Not needed
+    private static void testUpdateParent() throws Exception {
         LOG.info(">> testUpdateParent");
-        AtlasGlossary glossary = createGlossary(getGlossaryModel(getRandomName()));
 
-        AtlasGlossaryCategory category_0 = createCategory(getCategoryModel(glossary.getGuid()));
-        AtlasGlossaryCategory category_1 = createCategory(getCategoryModelWithParent(glossary.getGuid(), getCategoryParentModel(category_0)));
-        AtlasGlossaryCategory category_2 = createCategory(getCategoryModelWithParent(glossary.getGuid(), getCategoryParentModel(category_1)));
-        AtlasGlossaryCategory category_3 = createCategory(getCategoryModelWithParent(glossary.getGuid(), getCategoryParentModel(category_2)));
-        AtlasGlossaryCategory category_4 = createCategory(getCategoryModelWithParent(glossary.getGuid(), getCategoryParentModel(category_3)));
+        Map<String, String> parent;
 
-        String category_0_nid = getNanoid(category_0.getQualifiedName());
-        String category_1_nid = getNanoid(category_1.getQualifiedName());
-        String category_2_nid = getNanoid(category_2.getQualifiedName());
-        String category_3_nid = getNanoid(category_3.getQualifiedName());
-        String category_4_nid = getNanoid(category_4.getQualifiedName());
+        AtlasEntity glossary = createGlossary();
+        String gloGUID = glossary.getGuid();
+        String gloQname = (String) glossary.getAttribute(QUALIFIED_NAME);
 
-        assertEquals(category_0.getQualifiedName(), category_0_nid + "@" + glossary.getQualifiedName());
-        assertEquals(category_1.getQualifiedName(), category_0_nid + "." + category_1_nid + "@" + glossary.getQualifiedName());
-        assertEquals(category_2.getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_2_nid + "@" + glossary.getQualifiedName());
-        assertEquals(category_3.getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_2_nid + "." + category_3_nid + "@" + glossary.getQualifiedName());
-        assertEquals(category_4.getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_2_nid + "." + category_3_nid + "." + category_4_nid + "@" + glossary.getQualifiedName());
+        AtlasEntity category_0 = getEntity(createCategory(gloGUID, null).getGuid());
+        AtlasEntity category_1 = getEntity(createCategory(gloGUID, category_0.getGuid()).getGuid());
+        AtlasEntity category_2 = getEntity(createCategory(gloGUID, category_1.getGuid()).getGuid());
+        AtlasEntity category_3 = getEntity(createCategory(gloGUID, category_2.getGuid()).getGuid());
+        AtlasEntity category_4 = getEntity(createCategory(gloGUID, category_3.getGuid()).getGuid());
 
-        assertEquals(category_1.getParentCategory().getCategoryGuid(), category_0.getGuid());
-        assertEquals(category_2.getParentCategory().getCategoryGuid(), category_1.getGuid());
-        assertEquals(category_3.getParentCategory().getCategoryGuid(), category_2.getGuid());
-        assertEquals(category_4.getParentCategory().getCategoryGuid(), category_3.getGuid());
 
-        //changing category_3's parent from category_2 to category_0
-        AtlasGlossaryCategory category = getCategory(category_3.getGuid());
-        category.setParentCategory(getCategoryParentModel(category_0));
-        AtlasGlossaryCategory updatedCategory = updateCategory(category.getGuid(), category);
-        assertEquals(updatedCategory.getQualifiedName(), category_0_nid + "." + category_3_nid + "@" + glossary.getQualifiedName());
-        assertEquals(getCategory(category_4.getGuid()).getQualifiedName(), category_0_nid + "." + category_3_nid + "." + category_4_nid + "@" + glossary.getQualifiedName());
+        Thread.sleep(3000);
+        category_0 = getEntity(category_0.getGuid());
+        category_1 = getEntity(category_1.getGuid());
+        category_2 = getEntity(category_2.getGuid());
+        category_3 = getEntity(category_3.getGuid());
+        category_4 = getEntity(category_4.getGuid());
 
-        //changing category_3's parent from category_0 to category_1
-        category = getCategory(category_3.getGuid());
-        category.setParentCategory(getCategoryParentModel(category_1));
-        updatedCategory = updateCategory(category.getGuid(), category);
-        assertEquals(updatedCategory.getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "@" + glossary.getQualifiedName());
-        assertEquals(getCategory(category_4.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "." + category_4_nid + "@" + glossary.getQualifiedName());
 
-        //change category_2's parent from category_1 to category_0
-        category = getCategory(category_2.getGuid());
-        category.setParentCategory(getCategoryParentModel(category_0));
-        updatedCategory = updateCategory(category.getGuid(), category);
-        assertEquals(updatedCategory.getQualifiedName(), category_0_nid + "." + category_2_nid + "@" + glossary.getQualifiedName());
+        String cat_0_nanoId = getNanoid(getQualifiedName(category_0));
+        String cat_1_nanoId = getNanoid(getQualifiedName(category_1));
+        String cat_2_nanoId = getNanoid(getQualifiedName(category_2));
+        String cat_3_nanoId = getNanoid(getQualifiedName(category_3));
+        String cat_4_nanoId = getNanoid(getQualifiedName(category_4));
+
+
+        assertEquals(getQualifiedName(category_0), concat(cat_0_nanoId, gloQname));
+        assertEquals(getQualifiedName(category_1), concat(cat_1_nanoId, gloQname));
+        assertEquals(getQualifiedName(category_2), concat(cat_2_nanoId, gloQname));
+        assertEquals(getQualifiedName(category_3), concat(cat_3_nanoId, gloQname));
+        assertEquals(getQualifiedName(category_4), concat(cat_4_nanoId, gloQname));
+
+
+        parent = getParentRelationshipAttribute(category_1);
+        assertEquals(parent.get("guid"), category_0.getGuid());
+        parent = getParentRelationshipAttribute(category_2);
+        assertEquals(parent.get("guid"), category_1.getGuid());
+        parent = getParentRelationshipAttribute(category_3);
+        assertEquals(parent.get("guid"), category_2.getGuid());
+        parent = getParentRelationshipAttribute(category_4);
+        assertEquals(parent.get("guid"), category_3.getGuid());
+
 
         LOG.info("<< testUpdateParent");
     }
 
     private static void changeAnotherAnchorNotAllowed() throws Exception {
         LOG.info(">> changeAnotherAnchorNotAllowed");
-        AtlasGlossary glossary_0 = createGlossary(getGlossaryModel(getRandomName()));
-        AtlasGlossary glossary_1 = createGlossary(getGlossaryModel(getRandomName()));
 
-        AtlasGlossaryCategory category_0 = createCategory(getCategoryModel(glossary_0.getGuid()));
-        AtlasGlossaryCategory category_1 = createCategory(getCategoryModelWithParent(glossary_0.getGuid(), getCategoryParentModel(category_0)));
+        AtlasEntity glossary_0 = createGlossary();
+        AtlasEntity glossary_1 = createGlossary();
 
-        AtlasGlossaryCategory category_2 = createCategory(getCategoryModel(glossary_1.getGuid()));
-        AtlasGlossaryCategory category_3 = createCategory(getCategoryModelWithParent(glossary_1.getGuid(), getCategoryParentModel(category_2)));
+        AtlasEntity category_0 = getEntity(createCategory(glossary_0.getGuid(), null).getGuid());
+        AtlasEntity category_1 = getEntity(createCategory(glossary_0.getGuid(), category_0.getGuid()).getGuid());
 
-        AtlasGlossaryCategory category = getCategory(category_3.getGuid());
-        category.setAnchor(getGlossaryHeader(glossary_0.getGuid()));
-        category.setParentCategory(getCategoryParentModel(category_1));
+        AtlasEntity category_2 = getEntity(createCategory(glossary_1.getGuid(), null).getGuid());
+        AtlasEntity category_3 = getEntity(createCategory(glossary_1.getGuid(), category_2.getGuid()).getGuid());
+
+        category_3.setRelationshipAttribute("anchor", getAnchorObjectId(glossary_0.getGuid()));
 
         boolean failed = false;
         try {
-            updateCategory(category.getGuid(), category);
+            createEntity(new AtlasEntity.AtlasEntityWithExtInfo(category_3));
         } catch (AtlasServiceException exception) {
             assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-0010"));
