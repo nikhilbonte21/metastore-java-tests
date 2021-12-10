@@ -15,7 +15,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.tests.main.glossary.utils.TestUtils.*;
-import static com.tests.main.glossary.utils.TestUtils.createEntity;
 import static org.junit.Assert.*;
 
 public class CategoryEntityRest implements TestsMain {
@@ -45,6 +44,8 @@ public class CategoryEntityRest implements TestsMain {
             testUpdateParentWithChildren();
             testUpdateChildren();
             testChildrenRelationWithSetToSetRelationshipDef();
+            testDeleteCategory();
+
             //TODO: add term tests
 
         } catch (Exception e){
@@ -1513,6 +1514,68 @@ public class CategoryEntityRest implements TestsMain {
 
 
         LOG.info("<< testChildrenRelationWithSetToSetRelationshipDef");
+    }
+
+    private static void testDeleteCategory() throws Exception {
+        LOG.info(">> testDeleteCategory");
+
+        AtlasEntity glossary_0, cat_00_updated, cat_0_updated, cat_1_updated, cat_2_updated;
+        Map parentCat;
+
+
+        glossary_0 = createGlossary();
+        String gloGUID = glossary_0.getGuid();
+        String gloQName = getQualifiedName(glossary_0);
+
+        /*
+        * cat_00  -->  cat_0  -->  cat_1  -->  cat_2
+        *                                 -->  cat_2
+        * */
+        AtlasEntity cat_00 = createCategory(gloGUID, "cat_00", null,  null);
+        AtlasEntity cat_0 = createCategory(gloGUID, "cat_0", cat_00.getGuid(),  null);
+        AtlasEntity cat_1 = createCategory(gloGUID, "cat_1", cat_0.getGuid(), null);
+        AtlasEntity cat_2 = createCategory(gloGUID, "cat_2", cat_1.getGuid(), null);
+        AtlasEntity cat_3 = createCategory(gloGUID, "cat_3", cat_1.getGuid(), null);
+
+        Thread.sleep(2000);
+        cat_00_updated = getEntity(cat_00.getGuid());
+        cat_0_updated = getEntity(cat_0.getGuid());
+        cat_1_updated = getEntity(cat_1.getGuid());
+
+        verifyESGlossary(cat_00.getGuid(), gloQName);
+        verifyESParentCatAndGlossary(cat_0.getGuid(), getQualifiedName(cat_00_updated), gloQName);
+        verifyESParentCatAndGlossary(cat_1.getGuid(), getQualifiedName(cat_0_updated), gloQName);
+        verifyESParentCatAndGlossary(cat_2.getGuid(), getQualifiedName(cat_1_updated), gloQName);
+        verifyESParentCatAndGlossary(cat_3.getGuid(), getQualifiedName(cat_1_updated), gloQName);
+
+        //delete cat_1
+        deleteEntities(Collections.singletonList(cat_1_updated.getGuid()));
+
+        boolean failed = false;
+        try {
+            getEntity(cat_1_updated.getGuid());
+        } catch (AtlasServiceException exception) {
+            assertEquals(exception.getStatus().getStatusCode(),404);
+            assertTrue(exception.getMessage().contains("ATLAS-404-00-005"));
+            failed = true;
+        } finally {
+            if (!failed) {
+                throw new Exception("This test should have failed");
+            }
+        }
+
+        Thread.sleep(2000);
+        cat_2_updated = getEntity(cat_2.getGuid());
+
+        parentCat = getParentRelationshipAttribute(cat_2_updated);
+        assertNull(parentCat);
+
+        verifyESGlossary(cat_00.getGuid(), gloQName);
+        verifyESParentCatAndGlossary(cat_0.getGuid(), getQualifiedName(cat_00_updated), gloQName);
+        verifyESGlossary(cat_2.getGuid(), gloQName);
+        verifyESGlossary(cat_3.getGuid(), gloQName);
+
+        LOG.info("<< testDeleteCategory");
     }
 
     private static void verifyESParentCatAndGlossary(String catGuid, String expectedParentCatQNAme, String expectedGloQName) {

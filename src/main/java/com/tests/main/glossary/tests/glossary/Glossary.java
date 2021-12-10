@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.tests.main.glossary.utils.TestUtils.*;
+import static com.tests.main.glossary.tests.TestsRunner.guidsToDelete;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -138,10 +139,10 @@ public class Glossary {
     }
     public static void deleteAllEntities() throws AtlasServiceException {
         //List<AtlasGlossary> glossaries = GlossaryUtils.getGlossaries();
-        LOG.info("Deleting {} entities", TestsRunner.guidsToDelete.size());
-        if (CollectionUtils.isNotEmpty(TestsRunner.guidsToDelete)) {
-            TestUtils.deleteEntities(new ArrayList<>(TestsRunner.guidsToDelete));
+        LOG.info("Deleting {} entities", guidsToDelete.size());
+        if (CollectionUtils.isNotEmpty(guidsToDelete)) {
+            TestUtils.deleteEntities(new ArrayList<>(guidsToDelete));
         }
-        guidsToDelete.clear();
+        TestsRunner.guidsToDelete.clear();
     }
 }

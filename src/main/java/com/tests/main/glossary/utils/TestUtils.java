@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static com.tests.main.glossary.tests.TestsRunner.guidsToDelete;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
 
 public class TestUtils {
     private static final Logger LOG = LoggerFactory.getLogger(Glossary.class);
-    public static Set<String> guidsToDelete = new HashSet<>();
 
     private static final String at = "@";
     private static final String dot = ".";
@@ -152,7 +152,12 @@ public class TestUtils {
     }
 
     public static EntityMutationResponse createEntitiesBulk(AtlasEntity.AtlasEntitiesWithExtInfo entitiesWithExtInfo) throws AtlasServiceException {
-        return atlasClient.createEntities(entitiesWithExtInfo);
+        EntityMutationResponse response =  atlasClient.createEntities(entitiesWithExtInfo);
+        if (CollectionUtils.isNotEmpty(response.getCreatedEntities())) {
+            guidsToDelete.addAll(response.getGuidAssignments().values());
+        }
+
+        return response;
     }
 
     public static AtlasEntity getEntity(String guid) throws AtlasServiceException {
@@ -465,7 +470,7 @@ public class TestUtils {
         entityWithExtInfo.setEntity(entity);
 
         AtlasEntity ret = getEntity(TestUtils.createEntity(entityWithExtInfo).getCreatedEntities().get(0).getGuid());
-        TestsRunner.guidsToDelete.add(ret.getGuid());
+        guidsToDelete.add(ret.getGuid());
         return ret;
     }
 
@@ -510,7 +515,6 @@ public class TestUtils {
             assertEquals(expectedGloQName, qName);
 
             assertNull(sourceAsMap.get("__parentCategory"));
-
         }
     }
 

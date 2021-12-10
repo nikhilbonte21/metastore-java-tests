@@ -28,6 +28,10 @@ public class TestsRunner {
         try {
             Reflections reflections = new Reflections();
             Set<Class<? extends TestsMain>> tests = reflections.getSubTypesOf(TestsMain.class);
+            LOG.info("Found {} tests class", tests.size());
+            Set<String> allTestsClass = tests.stream().map(x -> x.getSimpleName()).collect(Collectors.toSet());
+            LOG.info("\n{}\n", allTestsClass.stream().collect(Collectors.joining("\n")));
+
             for (Class testClass : tests) {
                 Class cls = Class.forName(testClass.getName());
                 TestsMain test = (TestsMain) cls.newInstance();
