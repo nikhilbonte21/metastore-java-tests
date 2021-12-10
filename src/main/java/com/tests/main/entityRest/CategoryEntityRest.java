@@ -68,7 +68,7 @@ public class CategoryEntityRest implements TestsMain {
         AtlasEntity createdEntity = getEntity(guid);
 
         assertNotNull(createdEntity);
-        Map<String, Object> anchor = (HashMap) createdEntity.getRelationshipAttribute("anchor");
+        Map<String, String> anchor = getAnchorRelationshipAttribute(createdEntity);
         assertNotNull(anchor);
         assertEquals(anchor.get("guid"), gloGUID);
         verifyESGlossary(createdEntity.getGuid(), gloQname);

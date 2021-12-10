@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 
 import static com.tests.main.glossary.utils.TestUtils.*;
 
+@Deprecated
 public class Term {
     private static final Logger LOG = LoggerFactory.getLogger(Term.class);
 

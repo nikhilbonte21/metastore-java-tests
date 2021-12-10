@@ -13,6 +13,7 @@ import java.util.Collections;
 import static com.tests.main.glossary.utils.TestUtils.*;
 import static org.junit.Assert.*;
 
+@Deprecated
 public class Category {
     private static final Logger LOG = LoggerFactory.getLogger(Category.class);
 
