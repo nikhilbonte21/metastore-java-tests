@@ -33,8 +33,9 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
 
         long start = System.currentTimeMillis();
         try {
-            //testCreateOrAddTerm();
+            testCreateOrAddTerm();
             testCreateOrAddCategory();
+            testDeleteCategory();
 
             //TODO: testCreateOrUpdateMeaningsInCategory(); //Entity rest
 
@@ -207,8 +208,92 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
         LOG.info("<< testCreateOrAddCategory");
     }
 
-    private static void assertTermCatProperty(String termGuid, String... expectedCatQNames) {
-        assertTermCatProperty(termGuid, true, expectedCatQNames);
+    private static void testDeleteCategory() throws Exception {
+        LOG.info(">> testDeleteCategory");
+
+        AtlasEntity glossary_0 = createGlossary("glossary_0");
+
+        AtlasEntity t_0 = create("term_0", glossary_0.getGuid());
+        AtlasEntity t_1 = create("term_1", glossary_0.getGuid());
+        AtlasEntity t_2 = create("term_2", glossary_0.getGuid());
+
+
+        //create new Category with 3 categories;
+        AtlasEntity category_0 = createCategory("cat_0", glossary_0.getGuid());
+        setAnchor(category_0, glossary_0.getGuid());
+        setTerms(category_0, t_0.getGuid(), t_1.getGuid(), t_2.getGuid());
+        create(category_0);
+
+        Thread.sleep(1500);
+        category_0 = getEntity(category_0.getGuid());
+        assertEquals(getTermsRelationshipAttribute(category_0).size(), 3);
+        assertESHits(getQualifiedName(glossary_0), Arrays.asList(t_0.getGuid(), t_1.getGuid(), t_2.getGuid()), getQualifiedName(category_0));
+
+
+        //create new Category & add previous terms to it also
+        AtlasEntity category_1 = createCategory("cat_1", glossary_0.getGuid());
+        setAnchor(category_1, glossary_0.getGuid());
+        setTerms(category_1, t_0.getGuid(), t_1.getGuid(), t_2.getGuid());
+        create(category_1);
+
+        Thread.sleep(2000);
+        t_0 = getEntity(t_0.getGuid());
+        List<Map> cats = getCategoriesRelationshipAttribute(t_0);
+        assertEquals(cats.size(), 2);
+        int activeCount = cats.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).collect(Collectors.toList()).size();
+        assertEquals(2, activeCount);
+        assertESHits(getQualifiedName(glossary_0), Arrays.asList(t_0.getGuid(), t_1.getGuid(), t_2.getGuid()),
+                getQualifiedName(category_1), getQualifiedName(category_0));
+
+
+        //delete category category_0
+        deleteEntities(Collections.singletonList(category_0.getGuid()));
+
+        Thread.sleep(1500);
+        t_0 = getEntity(t_0.getGuid());
+        t_1 = getEntity(t_1.getGuid());
+        t_2 = getEntity(t_2.getGuid());
+
+        cats = getCategoriesRelationshipAttribute(t_0);
+        assertEquals(cats.size(), 1);
+        activeCount = cats.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).collect(Collectors.toList()).size();
+        assertEquals(1, activeCount);
+
+        cats = getCategoriesRelationshipAttribute(t_1);
+        assertEquals(cats.size(), 1);
+        activeCount = cats.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).collect(Collectors.toList()).size();
+        assertEquals(1, activeCount);
+
+        cats = getCategoriesRelationshipAttribute(t_2);
+        assertEquals(cats.size(), 1);
+        activeCount = cats.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).collect(Collectors.toList()).size();
+        assertEquals(1, activeCount);
+
+        assertESHits(getQualifiedName(glossary_0), Arrays.asList(t_0.getGuid(), t_1.getGuid(), t_2.getGuid()),
+                getQualifiedName(category_1));
+
+
+
+        //delete category category_1
+        deleteEntities(Collections.singletonList(category_1.getGuid()));
+
+        Thread.sleep(1500);
+        t_0 = getEntity(t_0.getGuid());
+        t_1 = getEntity(t_1.getGuid());
+        t_2 = getEntity(t_2.getGuid());
+
+        cats = getCategoriesRelationshipAttribute(t_0);
+        assertEquals(cats.size(), 0);
+
+        cats = getCategoriesRelationshipAttribute(t_1);
+        assertEquals(cats.size(), 0);
+
+        cats = getCategoriesRelationshipAttribute(t_2);
+        assertEquals(cats.size(), 0);
+
+        assertESHits(getQualifiedName(glossary_0), Arrays.asList(t_0.getGuid(), t_1.getGuid(), t_2.getGuid()));
+
+        LOG.info(">> testDeleteCategory");
     }
 
     private static void assertTermCatProperty(String termGuid, boolean shouldPresent, String... expectedCatQNames) {
@@ -275,16 +360,6 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
         }
     }
 
-    private static void verifyGlossaryProperty(String guid, String gloQname){
-
-        SearchHit[] searchHit = ESUtils.searchWithGuid(guid).getHits().getHits();
-        for (SearchHit hit : searchHit) {
-            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
-            assertEquals(  sourceAsMap.get("__glossary"), gloQname);
-            assertNull(sourceAsMap.get("__categories"));
-        }
-    }
-
     private static AtlasEntity createGlossary(String name) throws Exception {
         AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, name).getEntity();
 
@@ -301,7 +376,6 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
             return getEntity(reps.getUpdatedEntities().get(0).getGuid());
         }
     }
-
 
     private static AtlasEntity create(String name, String gloGuid) throws Exception {
         AtlasEntity term = getAtlasEntity(TYPE_TERM, name).getEntity();

@@ -429,7 +429,7 @@ public class TestUtils {
 
     public static AtlasEntity.AtlasEntityWithExtInfo getAtlasEntity(String typeName, String entityName) {
         AtlasEntity entity = new AtlasEntity(typeName);
-        entityName = StringUtils.isNotEmpty(entityName) ? entityName : getRandomName();
+        entityName = StringUtils.isNotEmpty(entityName) ? entityName + "_" + getRandomName() : getRandomName();
         entity.setAttribute(NAME, entityName);
         entity.setAttribute(QUALIFIED_NAME, entityName + "_" + getRandomName());
 
@@ -504,6 +504,19 @@ public class TestUtils {
     public static Map<String, String> getParentRelationshipAttribute(AtlasEntity entity){
         return (Map<String, String>) entity.getRelationshipAttribute("parentCategory");
     }
+
+    public static List<Map> getCategoriesRelationshipAttribute(AtlasEntity entity){
+        return (List<Map>) entity.getRelationshipAttribute("categories");
+    }
+
+    public static List<Map> getTermsRelationshipAttribute(AtlasEntity entity){
+        return (List<Map>) entity.getRelationshipAttribute("terms");
+    }
+
+    public static Map<String, String> getAnchorRelationshipAttribute(AtlasEntity entity){
+        return (Map<String, String>) entity.getRelationshipAttribute("anchor");
+    }
+
 
     public static void verifyESGlossary(String catGuid, String expectedGloQName) {
 
