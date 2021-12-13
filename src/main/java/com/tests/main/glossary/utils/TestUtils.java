@@ -1,8 +1,7 @@
 package com.tests.main.glossary.utils;
 
 import com.tests.main.glossary.client.ClientBuilder;
-import com.tests.main.glossary.tests.TestsRunner;
-import com.tests.main.glossary.tests.glossary.Glossary;
+import com.tests.main.glossary.tests.glossary.GlossaryOld;
 import com.tests.main.glossary.client.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.model.glossary.AtlasGlossary;
@@ -30,7 +29,7 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
 
 public class TestUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(Glossary.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GlossaryOld.class);
 
     private static final String at = "@";
     private static final String dot = ".";
@@ -241,11 +240,11 @@ public class TestUtils {
     }
 
     public static void cleanUpAll() throws AtlasServiceException {
-        Glossary.deleteAllEntities();
+        deleteAllEntities();
     }
 
     public static void cleanUpAll(boolean all) throws AtlasServiceException {
-        Glossary.deleteAllEntities();
+        deleteAllEntities();
     }
 
     public static CatNCatTermHeader getCatHeader(int count, String glossaryGuid) throws Exception {

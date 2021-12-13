@@ -1,26 +1,18 @@
 package com.tests.main.glossary.tests.glossary;
 
-import com.tests.main.glossary.tests.TestsRunner;
-import com.tests.main.glossary.utils.TestUtils;
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.model.glossary.AtlasGlossary;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static com.tests.main.glossary.utils.TestUtils.*;
-import static com.tests.main.glossary.tests.TestsRunner.guidsToDelete;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class Glossary {
-    private static final Logger LOG = LoggerFactory.getLogger(Glossary.class);
+public class GlossaryOld {
+    private static final Logger LOG = LoggerFactory.getLogger(GlossaryOld.class);
 
-    public Glossary(){
+    public GlossaryOld(){
 
     }
 
@@ -129,20 +121,5 @@ public class Glossary {
         }
 
         LOG.info("<< testUpdateGlossaryDupQN");
-    }
-
-    public static void deleteAllEntities(boolean all) throws AtlasServiceException {
-        List<AtlasGlossary> glossaries = TestUtils.getGlossaries();
-        LOG.info("Deleting {} entities", glossaries.size());
-        TestUtils.deleteEntities(glossaries.stream().map(x -> x.getGuid()).collect(Collectors.toList()));
-
-    }
-    public static void deleteAllEntities() throws AtlasServiceException {
-        //List<AtlasGlossary> glossaries = GlossaryUtils.getGlossaries();
-        LOG.info("Deleting {} entities", guidsToDelete.size());
-        if (CollectionUtils.isNotEmpty(guidsToDelete)) {
-            TestUtils.deleteEntities(new ArrayList<>(guidsToDelete));
-        }
-        TestsRunner.guidsToDelete.clear();
     }
 }

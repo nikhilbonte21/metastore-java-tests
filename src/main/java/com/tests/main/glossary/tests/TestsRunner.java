@@ -1,6 +1,7 @@
 package com.tests.main.glossary.tests;
 
 import com.tests.main.glossary.utils.ESUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,8 @@ public class TestsRunner {
 
     public static void main(String[] args) throws Exception {
         LOG.info("Started running TestsRunner");
-        List<String> testsExecuted = new ArrayList<>();
+        Set<String> testsExecuted = new HashSet<>();
+        Set<String> allTestsClass = new HashSet<>();
 
         long start = System.currentTimeMillis();
 
@@ -29,7 +31,7 @@ public class TestsRunner {
             Reflections reflections = new Reflections();
             Set<Class<? extends TestsMain>> tests = reflections.getSubTypesOf(TestsMain.class);
             LOG.info("Found {} tests class", tests.size());
-            Set<String> allTestsClass = tests.stream().map(x -> x.getSimpleName()).collect(Collectors.toSet());
+            allTestsClass = tests.stream().map(x -> x.getSimpleName()).collect(Collectors.toSet());
             LOG.info("\n{}\n", allTestsClass.stream().collect(Collectors.joining("\n")));
 
             for (Class testClass : tests) {
@@ -43,6 +45,10 @@ public class TestsRunner {
             String exe = testsExecuted.stream().collect(Collectors.joining("\n"));
             LOG.info("Executed following Tests \n{}\n", exe);
             LOG.info("Completed running TestsRunner, took {} seconds", (System.currentTimeMillis() - start) / 1000 );
+
+            String pendingLists = CollectionUtils.subtract(allTestsClass, testsExecuted).stream().collect(Collectors.joining("\n")).toString();
+            //LOG.info("Pending following Tests \n{}\n", pendingLists.stream().collect(Collectors.joining("\n")));
+            LOG.info("Pending following Tests \n{}\n", pendingLists);
 
             cleanUpAll();
             ESUtils.close();

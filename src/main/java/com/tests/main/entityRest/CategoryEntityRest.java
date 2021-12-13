@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.tests.main.glossary.utils.TestUtils.*;
+import static com.tests.main.glossary.utils.TestUtils.createEntity;
 import static org.junit.Assert.*;
 
 public class CategoryEntityRest implements TestsMain {
@@ -46,8 +47,9 @@ public class CategoryEntityRest implements TestsMain {
             testChildrenRelationWithSetToSetRelationshipDef();
             testDeleteCategory();
 
-            //TODO: add term tests
-
+            //TODO: we have allowed same name for categories even at same level
+            //testCreateDupCategory()
+            //testUpdateDupCategory();
         } catch (Exception e){
             throw e;
         } finally {
@@ -74,6 +76,76 @@ public class CategoryEntityRest implements TestsMain {
         verifyESGlossary(createdEntity.getGuid(), gloQname);
 
         LOG.info("<< testCreateCategory");
+    }
+
+    private static void testCreateDupCategory() throws Exception {
+        LOG.info(">> testCreateDupCategory");
+        AtlasEntity glossary_0 = createGlossary("glossary_0");
+        String gloGUID = glossary_0.getGuid();
+
+        AtlasEntity entity = getAtlasEntity(TYPE_CATEGORY, "cat_0").getEntity();
+        entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(gloGUID));
+        createEntity(entity);
+
+        AtlasEntity glossary_1 = createGlossary("glossary_1");
+        //same term name in different glossary -> allowed
+        entity = getAtlasEntity(TYPE_CATEGORY, "cat_0").getEntity();
+        entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(glossary_1.getGuid()));
+        createEntity(entity);
+        Thread.sleep(2000);
+
+        boolean failed= false;
+        try {
+            //same term name in same glossary -> not allowed
+            entity = getAtlasEntity(TYPE_CATEGORY, "cat_0").getEntity();
+            entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(glossary_1.getGuid()));
+            createEntity(entity);
+
+        } catch (AtlasServiceException exception) {
+            assertEquals(exception.getStatus().getStatusCode(),409);
+            assertTrue(exception.getMessage().contains("ATLAS-409-00-009"));
+            failed = true;
+        } finally {
+            if (!failed) {
+                throw new Exception("Test testCreateDupCategory should have failed");
+            }
+        }
+        LOG.info("<< testCreateDupCategory");
+    }
+
+    private static void testUpdateDupCategory() throws Exception {
+        LOG.info(">> testUpdateDupCategory");
+        AtlasEntity glossary_0 = createGlossary("glossary_0");
+        String gloGUID = glossary_0.getGuid();
+
+        AtlasEntity entity = getAtlasEntity(TYPE_CATEGORY, "cat_0").getEntity();
+        entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(gloGUID));
+        createEntity(entity);
+
+
+        entity = getAtlasEntity(TYPE_CATEGORY, "cat_1").getEntity();
+        entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(gloGUID));
+        String guid = createEntity(entity).getCreatedEntities().get(0).getGuid();
+
+
+        boolean failed= false;
+        try {
+            Thread.sleep(2000);
+            //same term name in same glossary -> not allowed
+            entity = getEntity(guid);
+            entity.setAttribute(NAME, "cat_1");
+            createEntity(entity);
+
+        } catch (AtlasServiceException exception) {
+            assertEquals(exception.getStatus().getStatusCode(),409);
+            assertTrue(exception.getMessage().contains("ATLAS-409-00-009"));
+            failed = true;
+        } finally {
+            if (!failed) {
+                throw new Exception("Test testCreateDupTerm should have failed");
+            }
+        }
+        LOG.info("<< testUpdateDupCategory");
     }
 
     private static void changeAnotherAnchorNotAllowed() throws Exception {
