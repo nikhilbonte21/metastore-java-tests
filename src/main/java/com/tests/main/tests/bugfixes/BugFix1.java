@@ -1,19 +1,15 @@
 package com.tests.main.tests.bugfixes;
 
-import com.tests.main.tests.glossary.tests.TestsMain;
-import com.tests.main.utils.ESUtils;
-import org.apache.atlas.AtlasException;
-import com.tests.main.client.AtlasServiceException;
+import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasClassification;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.EntityMutationResponse;
-import org.elasticsearch.client.ml.dataframe.evaluation.classification.Classification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.*;
 
 
@@ -25,7 +21,7 @@ public class BugFix1 { //implements TestsMain {
             new BugFix1().run();
         } finally {
             cleanUpAll();
-            ESUtils.close();
+            ESUtil.close();
         }
     }
 
@@ -49,13 +45,13 @@ public class BugFix1 { //implements TestsMain {
 
         String tag = createClassification("tag_0" + getRandomName());
 
-        AtlasEntity input_column = getAtlasEntity(TYPE_COLUMN, "input_column").getEntity();
+        AtlasEntity input_column = getAtlasEntityExt(TYPE_COLUMN, "input_column").getEntity();
         AtlasClassification classification = new AtlasClassification(tag);
 
         input_column.addClassifications(Collections.singletonList(classification));
 
-        AtlasEntity output_column = getAtlasEntity(TYPE_COLUMN, "output_column").getEntity();
-        AtlasEntity column_process = getAtlasEntity(TYPE_COLUMN_PROCESS, "column_process").getEntity();
+        AtlasEntity output_column = getAtlasEntityExt(TYPE_COLUMN, "output_column").getEntity();
+        AtlasEntity column_process = getAtlasEntityExt(TYPE_COLUMN_PROCESS, "column_process").getEntity();
 
         column_process.setRelationshipAttribute("inputs", getObjectIdsAsList(TYPE_COLUMN, input_column.getGuid()));
         column_process.setRelationshipAttribute("outputs", getObjectIdsAsList(TYPE_COLUMN, output_column.getGuid()));

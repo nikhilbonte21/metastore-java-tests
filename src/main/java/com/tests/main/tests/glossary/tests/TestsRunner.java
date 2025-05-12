@@ -1,21 +1,23 @@
 package com.tests.main.tests.glossary.tests;
 
-import com.tests.main.utils.ESUtils;
+import com.tests.main.utils.ESUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.tests.main.utils.TestUtils.cleanUpAll;
+import static com.tests.main.utils.TestUtil.cleanUpAll;
 
 public class TestsRunner {
     private static final Logger LOG = LoggerFactory.getLogger(TestsRunner.class);
-    public static Set<String> guidsToDelete = new HashSet<>();
+    public static List<String> guidsToDelete = new ArrayList<>();
 
 
     public static void main(String[] args) throws Exception {
@@ -49,7 +51,7 @@ public class TestsRunner {
             LOG.info("Pending following Tests \n{}\n", pendingLists);
 
             cleanUpAll();
-            ESUtils.close();
+            ESUtil.close();
         }
     }
 }

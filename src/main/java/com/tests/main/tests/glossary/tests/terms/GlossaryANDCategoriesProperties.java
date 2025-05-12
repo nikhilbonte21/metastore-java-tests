@@ -1,7 +1,7 @@
 package com.tests.main.tests.glossary.tests.terms;
 
 import com.tests.main.tests.glossary.models.AtlasGlossaryTerm;
-import com.tests.main.utils.ESUtils;
+import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.glossary.AtlasGlossary;
 import org.apache.atlas.model.glossary.AtlasGlossaryCategory;
 import org.apache.atlas.model.instance.AtlasEntity;
@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 
 @Deprecated
 public class GlossaryANDCategoriesProperties {
@@ -41,7 +41,7 @@ public class GlossaryANDCategoriesProperties {
             throw e;
         } finally {
             Thread.sleep(2000);
-            ESUtils.close();
+            ESUtil.close();
             cleanUpAll();
             LOG.info("Completed running GlossaryANDCategoriesProperties tests, took {} seconds", (System.currentTimeMillis() - start) / 1000 );
         }
@@ -53,7 +53,7 @@ public class GlossaryANDCategoriesProperties {
         AtlasGlossary glossary_0 = createGlossary(getGlossaryModel());
         AtlasGlossaryTerm term_0 = createTerm(getTermModel(glossary_0.getGuid()));
 
-        SearchHit[] searchHit = ESUtils.searchWithName(term_0.getName()).getHits().getHits();
+        SearchHit[] searchHit = ESUtil.searchWithName(term_0.getName()).getHits().getHits();
         for (SearchHit hit : searchHit) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             assertEquals(  sourceAsMap.get("__glossary"), glossary_0.getQualifiedName());
@@ -69,7 +69,7 @@ public class GlossaryANDCategoriesProperties {
 
         Thread.sleep(2000);
         assertEquals(term_1.getCategories().size(), 3);
-        searchHit = ESUtils.searchWithName(term_1.getName()).getHits().getHits();
+        searchHit = ESUtil.searchWithName(term_1.getName()).getHits().getHits();
         assertESHits(searchHit, glossary_0.getQualifiedName(), catHeaderMap);
 
         //update existing Term with 3 categories;
@@ -78,7 +78,7 @@ public class GlossaryANDCategoriesProperties {
 
         Thread.sleep(2000);
         assertEquals(updatedTerm.getCategories().size(), 3);
-        searchHit = ESUtils.searchWithName(term_0.getName()).getHits().getHits();
+        searchHit = ESUtil.searchWithName(term_0.getName()).getHits().getHits();
         assertESHits(searchHit, glossary_0.getQualifiedName(), catHeaderMap);
 
         //update existing Term with add 2 more categories;
@@ -88,7 +88,7 @@ public class GlossaryANDCategoriesProperties {
 
         Thread.sleep(2000);
         assertEquals(updatedTerm.getCategories().size(), 5);
-        searchHit = ESUtils.searchWithName(term_0.getName()).getHits().getHits();
+        searchHit = ESUtil.searchWithName(term_0.getName()).getHits().getHits();
         assertESHits(searchHit, glossary_0.getQualifiedName(), catHeaderMap.addAll(catHeaderMap_1));
 
         //update existing Term with remove 3 categories;
@@ -97,7 +97,7 @@ public class GlossaryANDCategoriesProperties {
 
         Thread.sleep(2000);
         assertEquals(updatedTerm.getCategories().size(), 2);
-        searchHit = ESUtils.searchWithName(term_0.getName()).getHits().getHits();
+        searchHit = ESUtil.searchWithName(term_0.getName()).getHits().getHits();
         assertESHits(searchHit, glossary_0.getQualifiedName(), catHeaderMap_1);
 
 
@@ -107,7 +107,7 @@ public class GlossaryANDCategoriesProperties {
 
         Thread.sleep(2000);
         assertNull(updatedTerm.getCategories());
-        searchHit = ESUtils.searchWithName(term_0.getName()).getHits().getHits();
+        searchHit = ESUtil.searchWithName(term_0.getName()).getHits().getHits();
         assertESHits(searchHit, glossary_0.getQualifiedName(), null);
 
         LOG.info("<< testCreateOrAddTerm");
@@ -278,7 +278,7 @@ public class GlossaryANDCategoriesProperties {
     }
 
     private static void assertTermCatProperty(AtlasGlossaryTerm term, boolean shouldPresent, String... expectedCatQNames) {
-        SearchHit[] searchHit = ESUtils.searchWithName(term.getName()).getHits().getHits();
+        SearchHit[] searchHit = ESUtil.searchWithName(term.getName()).getHits().getHits();
         assertNotNull(searchHit);
         assertTrue(searchHit.length > 0);
 
@@ -323,7 +323,7 @@ public class GlossaryANDCategoriesProperties {
 
     private static void assertESHits(String glossaryQn, TermNTermHeader termHeaderMap, String... expectedQNames) {
         for (AtlasGlossaryTerm term : termHeaderMap.getTerms()) {
-            SearchHit[] searchHit = ESUtils.searchWithName(term.getName()).getHits().getHits();
+            SearchHit[] searchHit = ESUtil.searchWithName(term.getName()).getHits().getHits();
 
             assertNotNull(searchHit);
             assertTrue(searchHit.length > 0);

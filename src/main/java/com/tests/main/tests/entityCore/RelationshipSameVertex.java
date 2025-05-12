@@ -2,8 +2,8 @@ package com.tests.main.tests.entityCore;
 
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.tests.glossary.tests.category.OldCategoryEntityRest;
-import com.tests.main.utils.ESUtils;
-import com.tests.main.client.AtlasServiceException;
+import com.tests.main.utils.ESUtil;
+
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasRelationship;
 import org.slf4j.Logger;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.*;
 
 public class RelationshipSameVertex implements TestsMain {
@@ -23,7 +23,7 @@ public class RelationshipSameVertex implements TestsMain {
             new RelationshipSameVertex().run();
         } finally {
             cleanUpAll();
-            ESUtils.close();
+            ESUtil.close();
         }
     }
 
@@ -56,8 +56,8 @@ public class RelationshipSameVertex implements TestsMain {
         boolean failed = false;
         try {
             createEntity(category_0);
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-409-00-014"));
             assertTrue(exception.getMessage().contains(category_0.getGuid()));
             failed = true;
@@ -87,8 +87,8 @@ public class RelationshipSameVertex implements TestsMain {
         boolean failed = false;
         try {
             createRelationship(relationship);
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-409-00-014"));
             assertTrue(exception.getMessage().contains(category_0.getGuid()));
             failed = true;

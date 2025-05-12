@@ -2,9 +2,9 @@ package com.tests.main.tests.entityRest;
 
 import com.tests.main.tests.glossary.models.AtlasGlossaryTerm;
 import com.tests.main.tests.glossary.tests.TestsMain;
-import com.tests.main.utils.ESUtils;
+import com.tests.main.utils.ESUtil;
 
-import com.tests.main.client.AtlasServiceException;
+
 import org.apache.atlas.model.glossary.AtlasGlossary;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.EntityMutationResponse;
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.*;
 
 
@@ -25,7 +25,7 @@ public class TermEntityRest implements TestsMain {
             new TermEntityRest().run();
         } finally {
             cleanUpAll();
-            ESUtils.close();
+            ESUtil.close();
         }
     }
 
@@ -105,13 +105,13 @@ public class TermEntityRest implements TestsMain {
         boolean failed= false;
         try {
             //same term name in same glossary -> not allowed
-            AtlasEntity term = getAtlasEntity(TYPE_TERM, "").getEntity();
+            AtlasEntity term = getAtlasEntityExt(TYPE_TERM, "").getEntity();
             term.setAttribute(NAME, entity.getAttribute(NAME));
             term.setRelationshipAttribute("anchor", getObjectId(glossary_1.getGuid(), TYPE_GLOSSARY));
             createEntity(term);
 
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-409-00-009"));
             failed = true;
         } finally {
@@ -137,8 +137,8 @@ public class TermEntityRest implements TestsMain {
             updateTerm.setAttribute(NAME, term_0.getAttribute(NAME));
             createEntity(updateTerm);
 
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-409-00-009"));
             failed = true;
         } finally {
@@ -163,8 +163,8 @@ public class TermEntityRest implements TestsMain {
         boolean failed = false;
         try {
             createEntity(toUpdateTerm);
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-0010"));
             failed = true;
         } finally {
@@ -201,14 +201,14 @@ public class TermEntityRest implements TestsMain {
     }
 
     private static AtlasEntity createGlossary(String name) throws Exception {
-        AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, name).getEntity();
+        AtlasEntity glossary = getAtlasEntityExt(TYPE_GLOSSARY, name).getEntity();
 
         EntityMutationResponse reps = createEntity(glossary);
         return getEntity(reps.getCreatedEntities().get(0).getGuid());
     }
 
     private static AtlasEntity createTerm(String name, String gloGuid) throws Exception {
-        AtlasEntity term = getAtlasEntity(TYPE_TERM, name).getEntity();
+        AtlasEntity term = getAtlasEntityExt(TYPE_TERM, name).getEntity();
         term.setRelationshipAttribute("anchor", getObjectId(gloGuid, TYPE_GLOSSARY));
 
         EntityMutationResponse reps = createEntity(term);

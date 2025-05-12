@@ -17,9 +17,7 @@
  */
 package com.tests.main.utils;
 
-import org.apache.atlas.ApplicationProperties;
-import org.apache.atlas.AtlasException;
-import org.apache.commons.configuration.Configuration;
+import com.tests.main.client.okhttp3.ConfigReader;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -35,13 +33,26 @@ public class AtlasElasticsearchDatabase {
 
     private static volatile RestHighLevelClient searchClient;
     private static volatile RestClient lowLevelClient;
-    public static final String INDEX_BACKEND_CONF = "atlas.graph.index.search.hostname";
+    private static String INDEX_INDEX_HOST_LOCAL = "localhost:9200";
+    private static String INDEX_INDEX_HOST_BETA = "localhost:9500";
+    private static String CURRENT_INDEX_HOST;
 
-    public static List<HttpHost> getHttpHosts() throws AtlasException {
+    static {
+        try {
+            String mode = ConfigReader.getString("atlas.client.mode");
+
+            if (mode.equals("local"))
+                CURRENT_INDEX_HOST = INDEX_INDEX_HOST_LOCAL;
+            else
+                CURRENT_INDEX_HOST = INDEX_INDEX_HOST_BETA;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static List<HttpHost> getHttpHosts() throws Exception {
         List<HttpHost> httpHosts = new ArrayList<>();
-        Configuration configuration = ApplicationProperties.get();
-        String indexConf = configuration.getString(INDEX_BACKEND_CONF);
-        String[] hosts = indexConf.split(",");
+        String[] hosts = CURRENT_INDEX_HOST.split(",");
         for (String host: hosts) {
             host = host.trim();
             String[] hostAndPort = host.split(":");
@@ -50,7 +61,7 @@ public class AtlasElasticsearchDatabase {
             } else if (hostAndPort.length == 2) {
                 httpHosts.add(new HttpHost(hostAndPort[0], Integer.parseInt(hostAndPort[1])));
             } else {
-                throw new AtlasException("Invalid config");
+                throw new Exception("Invalid config");
             }
         }
         return httpHosts;
@@ -68,7 +79,7 @@ public class AtlasElasticsearchDatabase {
                                         .setSocketTimeout(900000));
                         searchClient =
                                 new RestHighLevelClient(restClientBuilder);
-                    } catch (AtlasException e) {
+                    } catch (Exception e) {
                         LOG.error("Failed to initialize high level client for ES");
                     }
                 }
@@ -90,7 +101,7 @@ public class AtlasElasticsearchDatabase {
                                 .setSocketTimeout(900000));
 
                         lowLevelClient = builder.build();
-                    } catch (AtlasException e) {
+                    } catch (Exception e) {
                         LOG.error("Failed to initialize low level rest client for ES");
                     }
                 }

@@ -1,27 +1,34 @@
 package com.tests.main.utils;
 
-import org.apache.atlas.AtlasException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.*;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.tests.main.utils.AtlasElasticsearchDatabase.getHttpHosts;
 
-public class ESUtils {
+public class ESUtil {
 
-    private static final Logger       LOG = LoggerFactory.getLogger(ESUtils.class);
+    private static final Logger       LOG = LoggerFactory.getLogger(ESUtil.class);
     public static RestClient          lowLevelClient;
     public static RestHighLevelClient highLevelClient;
     public static String              index = "janusgraph_vertex_index";
+    public static String              index_access_logs = "ranger-audit";
 
     private static RequestOptions requestOptions = RequestOptions.DEFAULT;
     private static int            bufferLimit    = 2000 * 1024 * 1024;
@@ -47,15 +54,34 @@ public class ESUtils {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.query(queryBuilder);
 
-        SearchRequest searchRequest = new SearchRequest(index);
+        SearchRequest searchRequest = new SearchRequest("ranger-audit");
         searchRequest.source(sourceBuilder);
 
         return runQuery(searchRequest);
     }
 
+    public static SearchResponse searchWithTypeName(String typeName, int from, int size) {
+        LOG.info("searchWithTypeName: {}", typeName);
+        QueryBuilder queryBuilder = QueryBuilders.boolQuery()
+
+                .must(QueryBuilders.matchQuery("__typeName", typeName))
+                .must(QueryBuilders.matchQuery("__state", "ACTIVE"));
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(queryBuilder);
+        sourceBuilder.size(size);
+        sourceBuilder.from(from);
+        sourceBuilder.sort("__guid", SortOrder.ASC);
+
+        SearchRequest searchRequest = new SearchRequest(index);
+        searchRequest.source(sourceBuilder);
+        LOG.info(" sourceBuilder {}", sourceBuilder);
+        return runQuery(searchRequest);
+    }
+
     public static SearchResponse searchWithGuid(String guid) {
         LOG.info("searchWithGuid: {}", guid);
-        QueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("__guid", guid));
+        QueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.termQuery("__guid", guid));
 
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.query(queryBuilder);
@@ -64,6 +90,32 @@ public class ESUtils {
         searchRequest.source(sourceBuilder);
 
         return runQuery(searchRequest);
+    }
+
+    public static SearchResponse searchWithPrefixQN(String guid) {
+        LOG.info("searchWithPrefixQN: {}", guid);
+        QueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.prefixQuery("qualifiedName", guid));
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(queryBuilder);
+
+        SearchRequest searchRequest = new SearchRequest(index);
+        searchRequest.source(sourceBuilder);
+
+        return runQuery(searchRequest);
+    }
+
+    public static SearchHit[] searchWithQueryBuilderAccess(QueryBuilder queryBuilder) {
+        LOG.info("searchWithQueryBuilder");
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(queryBuilder);
+        sourceBuilder.sort("evtTime", SortOrder.DESC);
+
+        SearchRequest searchRequest = new SearchRequest(index_access_logs);
+        searchRequest.source(sourceBuilder);
+
+        return runQuery(searchRequest).getHits().getHits();
     }
 
     public static SearchResponse runQuery(SearchRequest searchRequest) {
@@ -83,6 +135,29 @@ public class ESUtils {
         return null;
     }
 
+    public static Map<String, Object> runAliasGetQuery(String aliasName) {
+
+        try {
+            GetAliasesRequest requestWithAlias = new GetAliasesRequest(aliasName);
+            GetAliasesResponse response = highLevelClient.indices().getAlias(requestWithAlias, requestOptions);
+
+            ObjectMapper mapper = new ObjectMapper();
+            TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
+            return mapper.readValue(response.getAliases().get("janusgraph_vertex_index").iterator().next().filter().toString(), typeRef);
+
+        } catch (Exception e) {
+            LOG.info("Re-creating highLevelClient");
+            try {
+                highLevelClient = getClient(true);
+                //return highLevelClient.search(searchRequest, requestOptions);
+            } catch (Exception ec) {
+                ec.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
     private static RestHighLevelClient getClient(boolean force) {
         try {
             List<HttpHost> httpHosts = getHttpHosts();
@@ -92,7 +167,7 @@ public class ESUtils {
                             .setSocketTimeout(900000));
             highLevelClient =
                     new RestHighLevelClient(restClientBuilder);
-        } catch (AtlasException e) {
+        } catch (Exception e) {
             LOG.error("Failed to initialize high level client for ES");
         }
         return highLevelClient;
@@ -110,7 +185,7 @@ public class ESUtils {
                                         .setSocketTimeout(900000));
                         highLevelClient =
                                 new RestHighLevelClient(restClientBuilder);
-                    } catch (AtlasException e) {
+                    } catch (Exception e) {
                         LOG.error("Failed to initialize high level client for ES");
                     }
                 }
@@ -132,7 +207,7 @@ public class ESUtils {
                                 .setSocketTimeout(900000));
 
                         lowLevelClient = builder.build();
-                    } catch (AtlasException e) {
+                    } catch (Exception e) {
                         LOG.error("Failed to initialize low level rest client for ES");
                     }
                 }

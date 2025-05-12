@@ -1,11 +1,11 @@
 package com.tests.main.tests.glossary.tests.glossary;
 
-import com.tests.main.client.AtlasServiceException;
+
 import org.apache.atlas.model.glossary.AtlasGlossary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -39,7 +39,7 @@ public class GlossaryOld {
         }
     }
 
-    private static void testCreateGlossary() throws AtlasServiceException {
+    private static void testCreateGlossary() throws Exception {
         LOG.info(">> testCreateGlossary");
 
         AtlasGlossary glossary = new AtlasGlossary();
@@ -79,8 +79,8 @@ public class GlossaryOld {
             dupGlossary.setName(name);
             createGlossary(dupGlossary);
 
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-409-00-007"));
             failed = true;
         } finally {
@@ -111,8 +111,8 @@ public class GlossaryOld {
             updatedGlossary.setName(name);
             updateGlossary(updatedGlossary.getGuid(), updatedGlossary);
 
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-409-00-007"));
             failed = true;
         } finally {

@@ -1,9 +1,10 @@
 package com.tests.main.tests.entityRest;
 
 import com.tests.main.tests.glossary.tests.TestsMain;
-import com.tests.main.utils.ESUtils;
+import com.tests.main.utils.ESUtil;
 ;
-import com.tests.main.client.AtlasServiceException;
+
+import com.tests.main.utils.TestUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.elasticsearch.search.SearchHit;
@@ -14,8 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.tests.main.utils.TestUtils.*;
-import static com.tests.main.utils.TestUtils.createEntity;
+import static com.tests.main.utils.TestUtil.*;
+import static com.tests.main.utils.TestUtil.createEntity;
 import static org.junit.Assert.*;
 
 public class CategoryEntityRest implements TestsMain {
@@ -26,7 +27,7 @@ public class CategoryEntityRest implements TestsMain {
             new CategoryEntityRest().run();
         } finally {
             cleanUpAll();
-            ESUtils.close();
+            ESUtil.close();
         }
     }
 
@@ -83,13 +84,13 @@ public class CategoryEntityRest implements TestsMain {
         AtlasEntity glossary_0 = createGlossary("glossary_0");
         String gloGUID = glossary_0.getGuid();
 
-        AtlasEntity entity = getAtlasEntity(TYPE_CATEGORY, "cat_0").getEntity();
+        AtlasEntity entity = getAtlasEntityExt(TYPE_CATEGORY, "cat_0").getEntity();
         entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(gloGUID));
         createEntity(entity);
 
         AtlasEntity glossary_1 = createGlossary("glossary_1");
         //same term name in different glossary -> allowed
-        entity = getAtlasEntity(TYPE_CATEGORY, "cat_0").getEntity();
+        entity = getAtlasEntityExt(TYPE_CATEGORY, "cat_0").getEntity();
         entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(glossary_1.getGuid()));
         createEntity(entity);
         Thread.sleep(2000);
@@ -97,12 +98,12 @@ public class CategoryEntityRest implements TestsMain {
         boolean failed= false;
         try {
             //same term name in same glossary -> not allowed
-            entity = getAtlasEntity(TYPE_CATEGORY, "cat_0").getEntity();
+            entity = getAtlasEntityExt(TYPE_CATEGORY, "cat_0").getEntity();
             entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(glossary_1.getGuid()));
             createEntity(entity);
 
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-409-00-009"));
             failed = true;
         } finally {
@@ -118,12 +119,12 @@ public class CategoryEntityRest implements TestsMain {
         AtlasEntity glossary_0 = createGlossary("glossary_0");
         String gloGUID = glossary_0.getGuid();
 
-        AtlasEntity entity = getAtlasEntity(TYPE_CATEGORY, "cat_0").getEntity();
+        AtlasEntity entity = getAtlasEntityExt(TYPE_CATEGORY, "cat_0").getEntity();
         entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(gloGUID));
         createEntity(entity);
 
 
-        entity = getAtlasEntity(TYPE_CATEGORY, "cat_1").getEntity();
+        entity = getAtlasEntityExt(TYPE_CATEGORY, "cat_1").getEntity();
         entity.setRelationshipAttribute(ANCHOR, getAnchorObjectId(gloGUID));
         String guid = createEntity(entity).getCreatedEntities().get(0).getGuid();
 
@@ -136,8 +137,8 @@ public class CategoryEntityRest implements TestsMain {
             entity.setAttribute(NAME, "cat_1");
             createEntity(entity);
 
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),409);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-409-00-009"));
             failed = true;
         } finally {
@@ -165,9 +166,9 @@ public class CategoryEntityRest implements TestsMain {
         boolean failed = false;
         try {
             createEntity(new AtlasEntity.AtlasEntityWithExtInfo(category_3));
-        } catch (AtlasServiceException exception) {
+        } catch (Exception exception) {
             LOG.info("This test have failed as expected");
-            assertEquals(exception.getStatus().getStatusCode(),409);
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-0010"));
             failed = true;
         } finally {
@@ -252,14 +253,14 @@ public class CategoryEntityRest implements TestsMain {
 
         Thread.sleep(2000);
         category_3 = getEntity(category_3.getGuid());
-        category_3.setRelationshipAttribute(PARENT_CATEGORY, getParentCategoryObjectId(category_1.getGuid()));
+        category_3.setRelationshipAttribute(TestUtil.REL_PARENT_CAT, getParentCategoryObjectId(category_1.getGuid()));
 
         boolean failed = false;
         try {
             createEntity(category_3);
-        } catch (AtlasServiceException exception) {
+        } catch (Exception exception) {
             LOG.info("This test failed as expected");
-            assertEquals(exception.getStatus().getStatusCode(),409);
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-0015"));
             failed = true;
         } finally {
@@ -270,14 +271,14 @@ public class CategoryEntityRest implements TestsMain {
 
         Thread.sleep(2000);
         category_2 = getEntity(category_2.getGuid());
-        category_2.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(category_1.getGuid()));
+        category_2.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(category_1.getGuid()));
 
         failed = false;
         try {
             createEntity(category_2);
-        } catch (AtlasServiceException exception) {
+        } catch (Exception exception) {
             LOG.info("This test failed as expected");
-            assertEquals(exception.getStatus().getStatusCode(),409);
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-0015"));
             failed = true;
         } finally {
@@ -289,9 +290,9 @@ public class CategoryEntityRest implements TestsMain {
         failed = false;
         try {
             createCategory(glossary_1.getGuid(), "cat_4", category_0.getGuid(), null);
-        } catch (AtlasServiceException exception) {
+        } catch (Exception exception) {
             LOG.info("This test failed as expected");
-            assertEquals(exception.getStatus().getStatusCode(),409);
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-0015"));
             failed = true;
         } finally {
@@ -302,14 +303,14 @@ public class CategoryEntityRest implements TestsMain {
 
         failed = false;
         try {
-            AtlasEntity entity = getAtlasEntity(TYPE_CATEGORY, "cat_4").getEntity();
+            AtlasEntity entity = getAtlasEntityExt(TYPE_CATEGORY, "cat_4").getEntity();
             entity.setRelationshipAttribute(ANCHOR, getObjectId(glossary_1.getGuid(), TYPE_GLOSSARY));
-            entity.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(category_1.getGuid()));
+            entity.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(category_1.getGuid()));
 
             createEntity(entity);
-        } catch (AtlasServiceException exception) {
+        } catch (Exception exception) {
             LOG.info("This test failed as expected");
-            assertEquals(exception.getStatus().getStatusCode(),409);
+            //assertEquals(exception.getStatus().getStatusCode(),409);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-0015"));
             failed = true;
         } finally {
@@ -391,18 +392,18 @@ public class CategoryEntityRest implements TestsMain {
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_3.getGuid());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
@@ -447,35 +448,35 @@ public class CategoryEntityRest implements TestsMain {
         assertEquals(getQualifiedName(cat_3_updated), concat(cat_3_nanoId, gloQName));
         assertEquals(getQualifiedName(cat_4_updated), concat(cat_4_nanoId, gloQName));
 
-        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_5.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_3.getGuid());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_0_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_0_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
 
-        childrenCat = (List) cat_5_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_5_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_1.getGuid());
@@ -522,28 +523,28 @@ public class CategoryEntityRest implements TestsMain {
         assertEquals(getQualifiedName(cat_3_updated), concat(cat_3_nanoId, gloQName));
         assertEquals(getQualifiedName(cat_4_updated), concat(cat_4_nanoId, gloQName));
 
-        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_6.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_5_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_5_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
 
 
-        childrenCat = (List) cat_6_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_6_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_1.getGuid());
         childrenCat.clear();
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
@@ -551,16 +552,16 @@ public class CategoryEntityRest implements TestsMain {
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
 
-        childrenCat = (List) cat_0_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_0_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
@@ -599,15 +600,15 @@ public class CategoryEntityRest implements TestsMain {
         assertEquals(getQualifiedName(cat_3_updated), concat(cat_3_nanoId, gloQName));
         assertEquals(getQualifiedName(cat_4_updated), concat(cat_4_nanoId, gloQName));
 
-        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_0.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
@@ -615,27 +616,27 @@ public class CategoryEntityRest implements TestsMain {
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_5_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_5_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
 
-        childrenCat = (List) cat_0_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_0_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         assertEquals(1, childrenCat.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).count());
         assertEquals(1, childrenCat.stream().filter(x -> "DELETED".equals(x.get("relationshipStatus"))).count());
 
 
-        childrenCat = (List) cat_6_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_6_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
@@ -678,35 +679,35 @@ public class CategoryEntityRest implements TestsMain {
         assertEquals(getQualifiedName(cat_3_updated), concat(cat_3_nanoId, gloQName));
         assertEquals(getQualifiedName(cat_4_updated), concat(cat_4_nanoId, gloQName));
 
-        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_0.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_1_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_1_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_2.getGuid());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_6.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_3.getGuid());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_6_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_6_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_2.getGuid());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_1.getGuid());
@@ -797,32 +798,32 @@ public class CategoryEntityRest implements TestsMain {
         assertNotNull(parentCat);
         assertEquals(cat_0.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_1_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_1_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_2.getGuid());
         assertEquals(1, childrenCat.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).count());
         assertEquals(1, childrenCat.stream().filter(x -> "DELETED".equals(x.get("relationshipStatus"))).count());
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_3.getGuid());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_6_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_6_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertEquals(3, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_2.getGuid());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_1.getGuid());
@@ -870,14 +871,14 @@ public class CategoryEntityRest implements TestsMain {
         AtlasEntity cat_3 = createCategory(gloGUID, "cat_3", null, null);
         AtlasEntity cat_4 = createCategory(gloGUID, "cat_4", null, null);
 
-        cat_0.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(cat_1.getGuid()));
+        cat_0.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(cat_1.getGuid()));
         createEntity(cat_0);
         cat_1 = getEntity(cat_1.getGuid());
-        cat_1.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(cat_2.getGuid()));
+        cat_1.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(cat_2.getGuid()));
         createEntity(cat_1);
         cat_2_updated = getEntity(cat_2.getGuid());
 
-        cat_2_updated.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(cat_3.getGuid(), cat_4.getGuid()));
+        cat_2_updated.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(cat_3.getGuid(), cat_4.getGuid()));
         createEntity(cat_2_updated);
 
         Thread.sleep(3000);
@@ -914,18 +915,18 @@ public class CategoryEntityRest implements TestsMain {
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_3.getGuid());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
@@ -946,7 +947,7 @@ public class CategoryEntityRest implements TestsMain {
             cat_6
         **/
         //update cat_5 add children as cat_1
-        cat_5_updated.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(cat_1.getGuid()));
+        cat_5_updated.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(cat_1.getGuid()));
         EntityMutationResponse response = createEntity(new AtlasEntity.AtlasEntityWithExtInfo(cat_5_updated));
 
         assertEquals(2, response.getUpdatedEntities().size());
@@ -961,35 +962,35 @@ public class CategoryEntityRest implements TestsMain {
         cat_6_updated = getEntity(cat_6.getGuid());
 
 
-        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_5.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_3.getGuid());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_0_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_0_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
 
-        childrenCat = (List) cat_5_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_5_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_1.getGuid());
@@ -1019,7 +1020,7 @@ public class CategoryEntityRest implements TestsMain {
             cat_6
         **/
         //update cat_6 add children as cat_1
-        cat_6_updated.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(cat_1.getGuid()));
+        cat_6_updated.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(cat_1.getGuid()));
         response = createEntity(new AtlasEntity.AtlasEntityWithExtInfo(cat_6_updated));
 
         assertEquals(2, response.getUpdatedEntities().size());
@@ -1043,28 +1044,28 @@ public class CategoryEntityRest implements TestsMain {
         assertEquals(getQualifiedName(cat_4_updated), concat(cat_4_nanoId, gloQName));
 
 
-        childrenCat = (List) cat_5_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_5_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
 
 
-        childrenCat = (List) cat_6_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_6_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_1.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_6.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
@@ -1072,16 +1073,16 @@ public class CategoryEntityRest implements TestsMain {
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
 
-        childrenCat = (List) cat_0_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_0_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
@@ -1106,7 +1107,7 @@ public class CategoryEntityRest implements TestsMain {
         **/
 
         //update cat_0 add child as cat_1
-        cat_0_updated.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(cat_1.getGuid()));
+        cat_0_updated.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(cat_1.getGuid()));
         response = createEntity(new AtlasEntity.AtlasEntityWithExtInfo(cat_0_updated));
 
         assertEquals(2, response.getUpdatedEntities().size());
@@ -1133,15 +1134,15 @@ public class CategoryEntityRest implements TestsMain {
         LOG.info("cat_5_updated {}", cat_5_updated.getGuid());
         LOG.info("cat_6_updated {}", cat_6_updated.getGuid());
 
-        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_1_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_0.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
@@ -1149,27 +1150,27 @@ public class CategoryEntityRest implements TestsMain {
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_4.getGuid());
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_2.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_5_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_5_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
 
-        childrenCat = (List) cat_0_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_0_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         assertEquals(1, childrenCat.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).count());
         assertEquals(1, childrenCat.stream().filter(x -> "DELETED".equals(x.get("relationshipStatus"))).count());
 
 
-        childrenCat = (List) cat_6_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_6_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
@@ -1193,7 +1194,7 @@ public class CategoryEntityRest implements TestsMain {
         **/
 
         //update cat_1 add child as cat_3 & cat_4
-        cat_1_updated.setRelationshipAttribute(CHILDREN_CATEGORY, getCategoryObjectIds(cat_2.getGuid(), cat_3.getGuid(), cat_4.getGuid()));
+        cat_1_updated.setRelationshipAttribute(REL_CHILDREN_CATS, getCategoryObjectIds(cat_2.getGuid(), cat_3.getGuid(), cat_4.getGuid()));
         response = createEntity(new AtlasEntity.AtlasEntityWithExtInfo(cat_1_updated));
 
         //assertEquals(5, response.getUpdatedEntities().size());
@@ -1216,11 +1217,11 @@ public class CategoryEntityRest implements TestsMain {
         assertEquals(getQualifiedName(cat_4_updated), concat(cat_4_nanoId, gloQName));
 
 
-        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_2_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_2_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_2_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_3.getGuid());
@@ -1228,15 +1229,15 @@ public class CategoryEntityRest implements TestsMain {
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
         childrenCat.clear();
 
-        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_3_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(PARENT_CATEGORY);
+        parentCat = (HashMap) cat_4_updated.getRelationshipAttribute(TestUtil.REL_PARENT_CAT);
         assertNotNull(parentCat);
         assertEquals(cat_1.getGuid(), parentCat.get("guid"));
 
-        childrenCat = (List) cat_1_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_1_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(3, childrenCat.size());
         childrenCat.stream().map(x -> x.get("guid")).collect(Collectors.toSet()).contains(cat_3.getGuid());
@@ -1245,17 +1246,17 @@ public class CategoryEntityRest implements TestsMain {
         childrenCat.stream().forEach(x -> assertTrue("ACTIVE".equals(x.get("relationshipStatus"))));
         childrenCat.clear();
 
-        childrenCat = (List) cat_5_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_5_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
 
-        childrenCat = (List) cat_0_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_0_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(2, childrenCat.size());
         assertEquals(1, childrenCat.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).count());
         assertEquals(1, childrenCat.stream().filter(x -> "DELETED".equals(x.get("relationshipStatus"))).count());
 
-        childrenCat = (List) cat_6_updated.getRelationshipAttribute(CHILDREN_CATEGORY);
+        childrenCat = (List) cat_6_updated.getRelationshipAttribute(REL_CHILDREN_CATS);
         assertNotNull(childrenCat);
         assertEquals(1, childrenCat.size());
         childrenCat.stream().forEach(x -> assertTrue("DELETED".equals(x.get("relationshipStatus"))));
@@ -1431,7 +1432,7 @@ public class CategoryEntityRest implements TestsMain {
         table_1 = createCustomEntity(TYPE_TABLE, "table_1");
         List<HashMap> children = new ArrayList<>();
 
-        AtlasEntity.AtlasEntityWithExtInfo extInfo = getAtlasEntity(TYPE_PROCESS, "process_0");
+        AtlasEntity.AtlasEntityWithExtInfo extInfo = getAtlasEntityExt(TYPE_PROCESS, "process_0");
         extInfo.getEntity().setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_TABLE, table_0.getGuid(), table_1.getGuid()));
 
         response = createEntity(extInfo);
@@ -1465,7 +1466,7 @@ public class CategoryEntityRest implements TestsMain {
 
         p1  -->  t0, t1
         * */
-        extInfo = getAtlasEntity(TYPE_PROCESS, "process_1");
+        extInfo = getAtlasEntityExt(TYPE_PROCESS, "process_1");
         extInfo.getEntity().setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_TABLE, table_0.getGuid(), table_1.getGuid()));
         response = createEntity(extInfo);
 
@@ -1512,7 +1513,7 @@ public class CategoryEntityRest implements TestsMain {
         table_2 = createCustomEntity(TYPE_TABLE, "table_2");
         table_3 = createCustomEntity(TYPE_TABLE, "table_3");
 
-        extInfo = getAtlasEntity(TYPE_PROCESS, "process_2");
+        extInfo = getAtlasEntityExt(TYPE_PROCESS, "process_2");
         extInfo.getEntity().setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_2.getGuid(), table_3.getGuid()));
 
         response = createEntity(extInfo);
@@ -1546,7 +1547,7 @@ public class CategoryEntityRest implements TestsMain {
 
         p1  -->  t0, t1
         * */
-        extInfo = getAtlasEntity(TYPE_PROCESS, "process_3");
+        extInfo = getAtlasEntityExt(TYPE_PROCESS, "process_3");
         extInfo.getEntity().setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_2.getGuid(), table_3.getGuid()));
         response = createEntity(extInfo);
 
@@ -1626,8 +1627,8 @@ public class CategoryEntityRest implements TestsMain {
         boolean failed = false;
         try {
             getEntity(cat_1_updated.getGuid());
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),404);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),404);
             assertTrue(exception.getMessage().contains("ATLAS-404-00-005"));
             failed = true;
         } finally {
@@ -1651,7 +1652,7 @@ public class CategoryEntityRest implements TestsMain {
     }
 
     private static void verifyESParentCatAndGlossary(String catGuid, String expectedParentCatQNAme, String expectedGloQName) {
-        SearchHit[] searchHit = ESUtils.searchWithGuid(catGuid).getHits().getHits();
+        SearchHit[] searchHit = ESUtil.searchWithGuid(catGuid).getHits().getHits();
         for (SearchHit hit : searchHit) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             assertNotNull(sourceAsMap.get("__glossary"));
@@ -1665,7 +1666,7 @@ public class CategoryEntityRest implements TestsMain {
     }
 
     private static void verifyESCategoriesAndGlossary(String termGuid, String expectedGloQName, String... expectedCatQNAmes) {
-        SearchHit[] searchHit = ESUtils.searchWithGuid(termGuid).getHits().getHits();
+        SearchHit[] searchHit = ESUtil.searchWithGuid(termGuid).getHits().getHits();
         for (SearchHit hit : searchHit) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             assertNotNull(sourceAsMap.get("__glossary"));

@@ -1,24 +1,26 @@
 package com.tests.main.tools.largeLineage;
 
-import com.tests.main.client.AtlasServiceException;
+import com.tests.main.utils.Utils;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 
 public class GenerateLargeLineage {
     private static final Logger LOG = LoggerFactory.getLogger(GenerateLargeLineage.class);
 
-    private static int count = 50;
+    private static final String QN_PREFIX = "default/snowflake/1640633578/";
+
+    private static int count = 100;
     // total Process = count
     // total Tables = count + 1
     // total entities = count + count + 1
     private static int processBatchSize = 21;
 
-    public static void main(String[] args) throws AtlasServiceException {
+    public static void main(String[] args) throws Exception {
 
         try {
             createLinearLineage();
@@ -57,6 +59,7 @@ public class GenerateLargeLineage {
 
             watch++;
 
+            LOG.info("entitiesWithExtInfo : {}", Utils.toJson(entitiesWithExtInfo));
             if (watch % processBatchSize == 0) {
                 response = createEntitiesBulk(entitiesWithExtInfo);
                 LOG.info("created {} entities", createdCount += response.getCreatedEntities().size());
@@ -86,7 +89,7 @@ public class GenerateLargeLineage {
 
         String name = getRandomName();
         entity.setAttribute(NAME, name);
-        entity.setAttribute(QUALIFIED_NAME, "default/snowflake/1643553816/" + name);
+        entity.setAttribute(QUALIFIED_NAME, QN_PREFIX + name);
 
         if (input != null) {
             entity.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, input.getGuid()));
@@ -104,7 +107,7 @@ public class GenerateLargeLineage {
 
         String name = getRandomName();
         entity.setAttribute(NAME, name);
-        entity.setAttribute(QUALIFIED_NAME, "default/snowflake/1643553816/" + name);
+        entity.setAttribute(QUALIFIED_NAME, QN_PREFIX + name);
 
         return entity;
     }

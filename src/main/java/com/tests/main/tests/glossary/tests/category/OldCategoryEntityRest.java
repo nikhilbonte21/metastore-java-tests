@@ -2,13 +2,13 @@ package com.tests.main.tests.glossary.tests.category;
 
 
 import org.apache.atlas.AtlasErrorCode;
-import com.tests.main.client.AtlasServiceException;
+
 import org.apache.atlas.model.glossary.AtlasGlossary;
 import org.apache.atlas.model.glossary.AtlasGlossaryCategory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.*;
 
 @Deprecated
@@ -45,7 +45,7 @@ public class OldCategoryEntityRest {
     If chaging anchor is allowed, in that case this test must poss
 
     */
-    private void changeAnchor() throws AtlasServiceException {
+    private void changeAnchor() throws Exception {
         LOG.info(">> changeAnchor");
         AtlasGlossary glossary_0 = createGlossary(getGlossaryModel(getRandomName()));
         AtlasGlossary glossary_1 = createGlossary(getGlossaryModel(getRandomName()));
@@ -93,7 +93,7 @@ public class OldCategoryEntityRest {
     As category_4, category_5 & category_6 's qualifiedName is not getting properly evaluated due the category_3's glossary change
     If changing anchor is allowed, in that case this needs to be fixed
      */
-    private void changeParentInAnotherAnchor() throws AtlasServiceException {
+    private void changeParentInAnotherAnchor() throws Exception {
         LOG.info(">> changeParentInAnotherAnchor");
         AtlasGlossary glossary_0 = createGlossary(getGlossaryModel(getRandomName()));
         AtlasGlossary glossary_1 = createGlossary(getGlossaryModel(getRandomName()));

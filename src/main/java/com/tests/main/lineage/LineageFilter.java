@@ -1,19 +1,18 @@
 package com.tests.main.lineage;
 
 import com.tests.main.tests.glossary.tests.TestsMain;
-import com.tests.main.utils.ESUtils;
-import com.tests.main.utils.Utils;
+import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasObjectId;
-import org.apache.atlas.model.instance.AtlasRelatedObjectId;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 
-import static com.tests.main.utils.TestUtils.*;
-import static com.tests.main.utils.TestUtils.getEntity;
+import static com.tests.main.utils.TestUtil.*;
+import static com.tests.main.utils.TestUtil.getEntity;
 import static org.junit.Assert.*;
 
 
@@ -24,8 +23,8 @@ public class LineageFilter implements TestsMain {
         try {
             new LineageFilter().run();
         } finally {
-            //cleanUpAll();
-            ESUtils.close();
+            cleanUpAll();
+            ESUtil.close();
         }
     }
 
@@ -35,7 +34,9 @@ public class LineageFilter implements TestsMain {
 
         long start = System.currentTimeMillis();
         try {
-            getLineage();
+            //getLineage();
+            sofDeletedProcessWithFlag();
+
 
         } catch (Exception e) {
             throw e;
@@ -58,47 +59,47 @@ public class LineageFilter implements TestsMain {
         *                                                                            -> table_8
         * */
 
-        AtlasEntity table_0 = getAtlasEntity(TYPE_TABLE, "table_0").getEntity();
-        AtlasEntity table_1 = getAtlasEntity(TYPE_TABLE, "table_1").getEntity();
-        AtlasEntity table_2 = getAtlasEntity(TYPE_TABLE, "table_2").getEntity();
-        AtlasEntity table_3 = getAtlasEntity(TYPE_TABLE, "table_3").getEntity();
-        AtlasEntity table_4 = getAtlasEntity(TYPE_TABLE, "table_4").getEntity();
-        AtlasEntity table_5 = getAtlasEntity(TYPE_TABLE, "table_5").getEntity();
-        AtlasEntity table_6 = getAtlasEntity(TYPE_TABLE, "table_6").getEntity();
-        AtlasEntity table_7 = getAtlasEntity(TYPE_TABLE, "table_7").getEntity();
-        AtlasEntity table_8 = getAtlasEntity(TYPE_TABLE, "table_8").getEntity();
-        AtlasEntity column_0 = getAtlasEntity(TYPE_COLUMN, "column_0").getEntity();
-        AtlasEntity column_1 = getAtlasEntity(TYPE_COLUMN, "column_1").getEntity();
-        AtlasEntity column_2 = getAtlasEntity(TYPE_COLUMN, "column_2").getEntity();
+        AtlasEntity table_0 = getAtlasEntityExt(TYPE_TABLE, "table_0").getEntity();
+        AtlasEntity table_1 = getAtlasEntityExt(TYPE_TABLE, "table_1").getEntity();
+        AtlasEntity table_2 = getAtlasEntityExt(TYPE_TABLE, "table_2").getEntity();
+        AtlasEntity table_3 = getAtlasEntityExt(TYPE_TABLE, "table_3").getEntity();
+        AtlasEntity table_4 = getAtlasEntityExt(TYPE_TABLE, "table_4").getEntity();
+        AtlasEntity table_5 = getAtlasEntityExt(TYPE_TABLE, "table_5").getEntity();
+        AtlasEntity table_6 = getAtlasEntityExt(TYPE_TABLE, "table_6").getEntity();
+        AtlasEntity table_7 = getAtlasEntityExt(TYPE_TABLE, "table_7").getEntity();
+        AtlasEntity table_8 = getAtlasEntityExt(TYPE_TABLE, "table_8").getEntity();
+        AtlasEntity column_0 = getAtlasEntityExt(TYPE_COLUMN, "column_0").getEntity();
+        AtlasEntity column_1 = getAtlasEntityExt(TYPE_COLUMN, "column_1").getEntity();
+        AtlasEntity column_2 = getAtlasEntityExt(TYPE_COLUMN, "column_2").getEntity();
 
-        AtlasEntity process_0 = getAtlasEntity(TYPE_PROCESS, "process_0").getEntity();
+        AtlasEntity process_0 = getAtlasEntityExt(TYPE_PROCESS, "process_0").getEntity();
         process_0.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_0.getGuid()));
         process_0.setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_TABLE, table_1.getGuid()));
 
-        AtlasEntity process_1 = getAtlasEntity(TYPE_PROCESS, "process_1").getEntity();
+        AtlasEntity process_1 = getAtlasEntityExt(TYPE_PROCESS, "process_1").getEntity();
         process_1.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_1.getGuid()));
         List<AtlasObjectId> relatedObjectIdList = getObjectIdsAsList(TYPE_TABLE, table_2.getGuid(), table_3.getGuid());
         relatedObjectIdList.add(getObjectId(column_0.getGuid(), TYPE_COLUMN));
         process_1.setRelationshipAttribute(OUTPUTS, relatedObjectIdList);
 
-        AtlasEntity process_2 = getAtlasEntity(TYPE_PROCESS, "process_2").getEntity();
+        AtlasEntity process_2 = getAtlasEntityExt(TYPE_PROCESS, "process_2").getEntity();
         process_2.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_3.getGuid()));
         process_2.setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_TABLE, table_4.getGuid()));
 
-        AtlasEntity process_3 = getAtlasEntity(TYPE_PROCESS, "process_3").getEntity();
+        AtlasEntity process_3 = getAtlasEntityExt(TYPE_PROCESS, "process_3").getEntity();
         process_3.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_2.getGuid()));
         process_3.setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_COLUMN, column_2.getGuid()));
 
 
-        AtlasEntity process_4 = getAtlasEntity(TYPE_PROCESS, "process_4").getEntity();
+        AtlasEntity process_4 = getAtlasEntityExt(TYPE_PROCESS, "process_4").getEntity();
         process_4.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_2.getGuid()));
         process_4.setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_COLUMN, table_5.getGuid()));
 
-        AtlasEntity process_5 = getAtlasEntity(TYPE_PROCESS, "process_5").getEntity();
+        AtlasEntity process_5 = getAtlasEntityExt(TYPE_PROCESS, "process_5").getEntity();
         process_5.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_2.getGuid()));
         process_5.setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_COLUMN, table_6.getGuid(), table_7.getGuid(), table_8.getGuid()));
 
-        AtlasEntity process_n = getAtlasEntity(TYPE_PROCESS, "process_n").getEntity();
+        AtlasEntity process_n = getAtlasEntityExt(TYPE_PROCESS, "process_n").getEntity();
         process_n.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_COLUMN, column_0.getGuid()));
         process_n.setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_COLUMN, column_1.getGuid()));
 
@@ -122,8 +123,6 @@ public class LineageFilter implements TestsMain {
         entitiesWithExtInfo.addEntity(process_4);
         entitiesWithExtInfo.addEntity(process_5);
         entitiesWithExtInfo.addEntity(process_n);
-
-        LOG.info(Utils.toJson(entitiesWithExtInfo));
 
         EntityMutationResponse response = createEntitiesBulk(entitiesWithExtInfo);
 
@@ -151,5 +150,232 @@ public class LineageFilter implements TestsMain {
 
 
         LOG.info(">> getLineage");
+    }
+
+    private static void sofDeletedProcessWithFlag() throws Exception {
+        LOG.info(">> sofDeletedProcessWithFlag");
+
+        AtlasEntity table_0 = getAtlasEntityExt(TYPE_TABLE, "table_0").getEntity();
+        AtlasEntity table_1 = getAtlasEntityExt(TYPE_TABLE, "table_1").getEntity();
+        AtlasEntity table_2 = getAtlasEntityExt(TYPE_TABLE, "table_2").getEntity();
+
+        AtlasEntity process_0 = getAtlasEntityExt(TYPE_PROCESS, "process_0").getEntity();
+        process_0.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_0.getGuid()));
+        process_0.setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_TABLE, table_1.getGuid()));
+
+
+        AtlasEntity process_1 = getAtlasEntityExt(TYPE_PROCESS, "process_1").getEntity();
+        process_1.setRelationshipAttribute(INPUTS, getObjectIdsAsList(TYPE_TABLE, table_1.getGuid()));
+        process_1.setRelationshipAttribute(OUTPUTS, getObjectIdsAsList(TYPE_TABLE, table_2.getGuid()));
+
+        AtlasEntity.AtlasEntitiesWithExtInfo entitiesWithExtInfo = new AtlasEntity.AtlasEntitiesWithExtInfo();
+        entitiesWithExtInfo.addEntity(table_0);
+        entitiesWithExtInfo.addEntity(table_1);
+        entitiesWithExtInfo.addEntity(table_2);
+        entitiesWithExtInfo.addEntity(process_0);
+        entitiesWithExtInfo.addEntity(process_1);
+
+        EntityMutationResponse response = createEntitiesBulk(entitiesWithExtInfo);
+
+        Thread.sleep(2000);
+        deleteEntities(Collections.singletonList(response.getGuidAssignments().get(process_0.getGuid())));
+
+        Thread.sleep(2000);
+        table_0 = getEntity(response.getGuidAssignments().get(table_0.getGuid()));
+        table_1 = getEntity(response.getGuidAssignments().get(table_1.getGuid()));
+        table_2 = getEntity(response.getGuidAssignments().get(table_2.getGuid()));
+        process_0 = getEntity(response.getGuidAssignments().get(process_0.getGuid()));
+        process_1 = getEntity(response.getGuidAssignments().get(process_1.getGuid()));
+        assertEquals(AtlasEntity.Status.DELETED, process_0.getStatus());
+
+        AtlasLineageRequest lineageRequest = new AtlasLineageRequest();
+        lineageRequest.setGuid(table_0.getGuid());
+        lineageRequest.setDirection(AtlasLineageInfo.LineageDirection.BOTH);
+        lineageRequest.setDepth(3);
+        lineageRequest.setHideProcess(false);
+
+        AtlasLineageInfo lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(0, lineageInfo.getRelations().size());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertNull(lineageInfo.getChildrenCounts().get(process_0.getGuid()));
+
+
+        lineageRequest.setGuid(process_0.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(4, lineageInfo.getRelations().size());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+
+
+        lineageRequest.setGuid(table_1.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(2, lineageInfo.getRelations().size());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+
+
+
+        lineageRequest.setGuid(table_2.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(2, lineageInfo.getRelations().size());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+
+        //---------------------------------
+
+        lineageRequest = new AtlasLineageRequest();
+        lineageRequest.setGuid(table_0.getGuid());
+        lineageRequest.setDirection(AtlasLineageInfo.LineageDirection.BOTH);
+        lineageRequest.setDepth(3);
+        lineageRequest.setHideProcess(true);
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(0, lineageInfo.getRelations().size());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertNull(lineageInfo.getChildrenCounts().get(process_0.getGuid()));
+
+
+        lineageRequest.setGuid(table_1.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(1, lineageInfo.getRelations().size());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+
+
+
+        lineageRequest.setGuid(table_2.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(1, lineageInfo.getRelations().size());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+
+        //------------------------------------------------
+        //------------------------------------------------
+
+
+        lineageRequest = new AtlasLineageRequest();
+        lineageRequest.setGuid(table_0.getGuid());
+        lineageRequest.setDirection(AtlasLineageInfo.LineageDirection.BOTH);
+        lineageRequest.setDepth(3);
+        lineageRequest.setAllowDeletedProcess(true);
+        lineageRequest.setHideProcess(false);
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(4, lineageInfo.getRelations().size());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+
+
+        lineageRequest.setGuid(process_0.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(4, lineageInfo.getRelations().size());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+
+
+        lineageRequest.setGuid(table_1.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(4, lineageInfo.getRelations().size());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+
+
+
+        lineageRequest.setGuid(table_2.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(4, lineageInfo.getRelations().size());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+
+        //---------------------------------
+
+        lineageRequest = new AtlasLineageRequest();
+        lineageRequest.setGuid(table_0.getGuid());
+        lineageRequest.setDirection(AtlasLineageInfo.LineageDirection.BOTH);
+        lineageRequest.setDepth(3);
+        lineageRequest.setHideProcess(true);
+        lineageRequest.setAllowDeletedProcess(true);
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(2, lineageInfo.getRelations().size());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+
+
+        lineageRequest.setGuid(table_1.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(2, lineageInfo.getRelations().size());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+
+
+
+        lineageRequest.setGuid(table_2.getGuid());
+
+        lineageInfo = getLineageInfo(lineageRequest);
+        assertNotNull(lineageInfo.getRelations());
+        assertEquals(2, lineageInfo.getRelations().size());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_2.getGuid()).get(AtlasLineageInfo.LineageDirection.OUTPUT).intValue());
+        assertEquals(0, lineageInfo.getChildrenCounts().get(table_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(table_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_0.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+        assertEquals(1, lineageInfo.getChildrenCounts().get(process_1.getGuid()).get(AtlasLineageInfo.LineageDirection.INPUT).intValue());
+
+
+        LOG.info(">> sofDeletedProcessWithFlag");
     }
 }

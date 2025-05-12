@@ -18,7 +18,6 @@
 
 package com.tests.main.pc;
 
-import com.tests.main.client.AtlasServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

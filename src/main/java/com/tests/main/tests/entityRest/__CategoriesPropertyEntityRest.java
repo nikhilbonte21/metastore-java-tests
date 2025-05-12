@@ -1,7 +1,7 @@
 package com.tests.main.tests.entityRest;
 
 import com.tests.main.tests.glossary.tests.TestsMain;
-import com.tests.main.utils.ESUtils;
+import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.apache.commons.collections.CollectionUtils;
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.*;
 
 public class __CategoriesPropertyEntityRest implements TestsMain {
@@ -23,7 +23,7 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
             new __CategoriesPropertyEntityRest().run();
         } finally {
             cleanUpAll();
-            ESUtils.close();
+            ESUtil.close();
         }
     }
 
@@ -58,7 +58,7 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
         AtlasEntity c_2 = createCategory("cat_2", glossary_0.getGuid());
 
         //create new Term with 3 categories;
-        AtlasEntity term_1 = getAtlasEntity(TYPE_TERM, "term_1_c").getEntity();
+        AtlasEntity term_1 = getAtlasEntityExt(TYPE_TERM, "term_1_c").getEntity();
         setAnchor(term_1, glossary_0.getGuid());
         setCategories(term_1, c_0.getGuid(), c_1.getGuid(), c_2.getGuid());
         term_1 = create(term_1);
@@ -297,7 +297,7 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
     }
 
     private static void assertTermCatProperty(String termGuid, boolean shouldPresent, String... expectedCatQNames) {
-        SearchHit[] searchHit = ESUtils.searchWithGuid(termGuid).getHits().getHits();
+        SearchHit[] searchHit = ESUtil.searchWithGuid(termGuid).getHits().getHits();
         assertNotNull(searchHit);
         assertTrue(searchHit.length > 0);
 
@@ -318,7 +318,7 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
     }
 
     private static void assertESHits(String termGuid, String glossaryQn, String... catQualifedNames) {
-        SearchHit[] searchHit = ESUtils.searchWithGuid(termGuid).getHits().getHits();
+        SearchHit[] searchHit = ESUtil.searchWithGuid(termGuid).getHits().getHits();
         assertNotNull(searchHit);
         assertTrue(searchHit.length > 0);
 
@@ -343,7 +343,7 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
 
     private static void assertESHits(String glossaryQn, List<String> termGuids, String... expectedQNames) {
         for (String termGuid : termGuids) {
-            SearchHit[] searchHit = ESUtils.searchWithGuid(termGuid).getHits().getHits();
+            SearchHit[] searchHit = ESUtil.searchWithGuid(termGuid).getHits().getHits();
 
             assertNotNull(searchHit);
             assertTrue(searchHit.length > 0);
@@ -361,7 +361,7 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
     }
 
     private static AtlasEntity createGlossary(String name) throws Exception {
-        AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, name).getEntity();
+        AtlasEntity glossary = getAtlasEntityExt(TYPE_GLOSSARY, name).getEntity();
 
         EntityMutationResponse reps = createEntity(glossary);
         return getEntity(reps.getCreatedEntities().get(0).getGuid());
@@ -378,7 +378,7 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
     }
 
     private static AtlasEntity create(String name, String gloGuid) throws Exception {
-        AtlasEntity term = getAtlasEntity(TYPE_TERM, name).getEntity();
+        AtlasEntity term = getAtlasEntityExt(TYPE_TERM, name).getEntity();
         term.setRelationshipAttribute("anchor", getObjectId(gloGuid, TYPE_GLOSSARY));
 
         EntityMutationResponse reps = createEntity(term);
@@ -387,7 +387,7 @@ public class __CategoriesPropertyEntityRest implements TestsMain {
     }
 
     private static AtlasEntity createCategory(String name, String gloGuid) throws Exception {
-        AtlasEntity term = getAtlasEntity(TYPE_CATEGORY, name).getEntity();
+        AtlasEntity term = getAtlasEntityExt(TYPE_CATEGORY, name).getEntity();
         term.setRelationshipAttribute("anchor", getObjectId(gloGuid, TYPE_GLOSSARY));
 
         EntityMutationResponse reps = createEntity(term);

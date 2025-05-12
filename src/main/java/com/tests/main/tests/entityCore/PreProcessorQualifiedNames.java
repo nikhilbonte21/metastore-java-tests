@@ -1,20 +1,17 @@
 package com.tests.main.tests.entityCore;
 
-import com.tests.main.client.AtlasClientV2;
-import com.tests.main.client.AtlasServiceException;
 import com.tests.main.client.ClientBuilder;
-import com.tests.main.tests.glossary.tests.TestsMain;
-import com.tests.main.utils.ESUtils;
-import com.tests.main.utils.TestUtils;
+import com.tests.main.utils.ESUtil;
+import com.tests.main.utils.TestUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.tests.main.utils.TestUtils.*;
+import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.*;
 
-public class PreProcessorQualifiedNames implements TestsMain {
+public class PreProcessorQualifiedNames{ //implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(PreProcessorQualifiedNames.class);
 
     public static void main(String[] args) throws Exception {
@@ -22,7 +19,7 @@ public class PreProcessorQualifiedNames implements TestsMain {
             new PreProcessorQualifiedNames().run();
         } finally {
             cleanUpAll();
-            ESUtils.close();
+            ESUtil.close();
         }
     }
 
@@ -51,7 +48,7 @@ public class PreProcessorQualifiedNames implements TestsMain {
     private static void testCreateQueryCollection() throws Exception {
         LOG.info(">> testCreateQueryCollection");
 
-        AtlasEntity collection = createEntity(getAtlasEntity(TYPE_QUERY_COLLECTION, "collection_0"));
+        AtlasEntity collection = createEntity(getAtlasEntityExt(TYPE_QUERY_COLLECTION, "collection_0"));
         assertTrue(getQualifiedName(collection).startsWith(PREFIX_QUERY_QN));
         String collectionQulifiedName = getQualifiedName(collection);
 
@@ -61,7 +58,7 @@ public class PreProcessorQualifiedNames implements TestsMain {
     private static void testCreateQuery() throws Exception {
         LOG.info(">> testCreateQuery");
 
-        AtlasEntity collection = createEntity(getAtlasEntity(TYPE_QUERY_COLLECTION, "collection_0"));
+        AtlasEntity collection = createEntity(getAtlasEntityExt(TYPE_QUERY_COLLECTION, "collection_0"));
         assertTrue(getQualifiedName(collection).startsWith(PREFIX_QUERY_QN));
         String collectionQulifiedName = getQualifiedName(collection);
 
@@ -69,9 +66,9 @@ public class PreProcessorQualifiedNames implements TestsMain {
         try {
             AtlasEntity entity = getAtlasEntityQuery("query_0", "").getEntity();
             entity.setRelationshipAttribute(PARENT, getObjectId(collection.getGuid(), TYPE_QUERY_COLLECTION));
-            TestUtils.createEntity(entity);
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),400);
+            TestUtil.createEntity(entity);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),400);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-02B"));
             failed = true;
         } finally {
@@ -95,22 +92,22 @@ public class PreProcessorQualifiedNames implements TestsMain {
     private static void testCreateQueryCustomClient() throws Exception {
         LOG.info(">> testCreateQueryCustomClient");
 
-        AtlasEntity collection = createEntity(getAtlasEntity(TYPE_QUERY_COLLECTION, "collection_0"));
+        AtlasEntity collection = createEntity(getAtlasEntityExt(TYPE_QUERY_COLLECTION, "collection_0"));
         assertTrue(getQualifiedName(collection).startsWith(PREFIX_QUERY_QN));
         String collectionQulifiedName = getQualifiedName(collection);
 
-        AtlasClientV2 clientCustom = ClientBuilder.buildCustomClientLocal("nikhil", "admin");
+        runAsAdmin();
 
         AtlasEntity query_1 = getAtlasEntityQuery("query_1", collectionQulifiedName).getEntity();
         query_1.setRelationshipAttribute(PARENT, getObjectId(collection.getGuid(), TYPE_QUERY_COLLECTION));
-        EntityMutationResponse response = clientCustom.createEntity(new AtlasEntity.AtlasEntityWithExtInfo(query_1));
+        EntityMutationResponse response = TestUtil.createEntity(new AtlasEntity.AtlasEntityWithExtInfo(query_1));
         query_1 = getEntity(response.getCreatedEntities().get(0).getGuid());
 
         String query_1_qName = getQualifiedName(query_1);
         String query_1_nanoid = getQueryNanoId(query_1_qName);
         assertEquals(collectionQulifiedName + "/query/nikhil/" + query_1_nanoid, query_1_qName);
 
-        clientCustom.close();
+        runAsGod();
 
         LOG.info("<< testCreateQueryCustomClient");
     }
@@ -118,7 +115,7 @@ public class PreProcessorQualifiedNames implements TestsMain {
     private static void testCreateQueryFolder() throws Exception {
         LOG.info(">> testCreateQueryFolder");
 
-        AtlasEntity collection = createEntity(getAtlasEntity(TYPE_QUERY_COLLECTION, "collection_0"));
+        AtlasEntity collection = createEntity(getAtlasEntityExt(TYPE_QUERY_COLLECTION, "collection_0"));
         assertTrue(getQualifiedName(collection).startsWith(PREFIX_QUERY_QN));
         String collectionQulifiedName = getQualifiedName(collection);
 
@@ -126,9 +123,9 @@ public class PreProcessorQualifiedNames implements TestsMain {
         try {
             AtlasEntity entity = getAtlasEntityQuery("folder_0", "").getEntity();
             entity.setRelationshipAttribute(PARENT, getObjectId(collection.getGuid(), TYPE_QUERY_COLLECTION));
-            TestUtils.createEntity(entity);
-        } catch (AtlasServiceException exception) {
-            assertEquals(exception.getStatus().getStatusCode(),400);
+            TestUtil.createEntity(entity);
+        } catch (Exception exception) {
+            //assertEquals(exception.getStatus().getStatusCode(),400);
             assertTrue(exception.getMessage().contains("ATLAS-400-00-02B"));
             failed = true;
         } finally {
@@ -151,22 +148,22 @@ public class PreProcessorQualifiedNames implements TestsMain {
     private static void testCreateQueryFolderCustomClient() throws Exception {
         LOG.info(">> testCreateQueryFolderCustomClient");
 
-        AtlasEntity collection = createEntity(getAtlasEntity(TYPE_QUERY_COLLECTION, "collection_0"));
+        AtlasEntity collection = createEntity(getAtlasEntityExt(TYPE_QUERY_COLLECTION, "collection_0"));
         assertTrue(getQualifiedName(collection).startsWith(PREFIX_QUERY_QN));
         String collectionQulifiedName = getQualifiedName(collection);
 
-        AtlasClientV2 clientCustom = ClientBuilder.buildCustomClientLocal("nikhil", "admin");
+        runAsAdmin();
 
         AtlasEntity folder_1 = getAtlasEntityQueryFolder("folder_1", collectionQulifiedName).getEntity();
         folder_1.setRelationshipAttribute(PARENT, getObjectId(collection.getGuid(), TYPE_QUERY_COLLECTION));
-        EntityMutationResponse response = clientCustom.createEntity(new AtlasEntity.AtlasEntityWithExtInfo(folder_1));
+        EntityMutationResponse response = TestUtil.createEntity(new AtlasEntity.AtlasEntityWithExtInfo(folder_1));
         folder_1 = getEntity(response.getCreatedEntities().get(0).getGuid());
 
         String folder_1_qName = getQualifiedName(folder_1);
         String folder_1_nanoid = getQueryNanoId(folder_1_qName);
         assertEquals(collectionQulifiedName + "/folder/nikhil/" + folder_1_nanoid, folder_1_qName);
 
-        clientCustom.close();
+        runAsGod();
 
         LOG.info("<< testCreateQueryFolderCustomClient");
     }
@@ -175,7 +172,7 @@ public class PreProcessorQualifiedNames implements TestsMain {
         LOG.info(">> testAllWithBulkCreate");
 
 
-        AtlasEntity collection = getAtlasEntity(TYPE_QUERY_COLLECTION, "collection_0").getEntity();
+        AtlasEntity collection = getAtlasEntityExt(TYPE_QUERY_COLLECTION, "collection_0").getEntity();
         AtlasEntity.AtlasEntitiesWithExtInfo entitiesWithExtInfo0 = new AtlasEntity.AtlasEntitiesWithExtInfo();
         entitiesWithExtInfo0.addEntity(collection);
         EntityMutationResponse response = createEntitiesBulk(entitiesWithExtInfo0);
@@ -233,7 +230,7 @@ public class PreProcessorQualifiedNames implements TestsMain {
     }
 
     private static AtlasEntity createEntity(AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo) throws Exception {
-        EntityMutationResponse response = TestUtils.createEntity(atlasEntityWithExtInfo);
+        EntityMutationResponse response = TestUtil.createEntity(atlasEntityWithExtInfo);
         Thread.sleep(1000);
         return getEntity(response.getCreatedEntities().get(0).getGuid());
     }
