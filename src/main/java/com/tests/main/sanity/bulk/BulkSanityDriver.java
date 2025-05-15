@@ -1,6 +1,6 @@
-package com.tests.main.sanity;
+package com.tests.main.sanity.bulk;
 
-public class SanityDriver {
+public class BulkSanityDriver {
     public static void main(String[] args) {
         try {
             new SanityAttributesMutations().run();

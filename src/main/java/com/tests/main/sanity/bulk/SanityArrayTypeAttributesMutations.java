@@ -1,16 +1,13 @@
-package com.tests.main.sanity;
+package com.tests.main.sanity.bulk;
 
 import com.tests.main.Test;
-import com.tests.main.TestRunner;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
 import com.tests.main.utils.TestUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
-import org.apache.atlas.model.instance.AtlasObjectId;
 import org.apache.atlas.model.instance.AtlasStruct;
 import org.apache.atlas.model.typedef.AtlasStructDef.AtlasAttributeDef;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
-import org.apache.atlas.model.typedef.AtlasStructDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

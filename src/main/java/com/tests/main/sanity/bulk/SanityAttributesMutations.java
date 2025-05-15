@@ -1,7 +1,6 @@
-package com.tests.main.sanity;
+package com.tests.main.sanity.bulk;
 
 import com.tests.main.Test;
-import com.tests.main.TestRunner;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasEntity;

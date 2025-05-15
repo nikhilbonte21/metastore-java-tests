@@ -188,7 +188,13 @@ public class OKClient {
             if (response.code() == 200 || response.code() == 204) {
                 return fromJson(response.body().string(), returnType);
             } else {
-                throw new Exception(response.code() + " | " + response.message() + " | " + response.body());
+                String responseBody = response.body() != null ? response.body().string() : "";
+                String errorMessage = String.format("%d | %s | %s", 
+                    response.code(), 
+                    response.message(), 
+                    responseBody);
+                LOG.error("Request failed: {}", errorMessage);
+                throw new Exception(errorMessage);
             }
         }
     }

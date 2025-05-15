@@ -5,13 +5,10 @@ import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasEntityHeader;
-import org.apache.atlas.model.instance.AtlasObjectId;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.Map;
 
 import static com.tests.main.utils.TestUtil.ES_CATEGORIES;
 import static com.tests.main.utils.TestUtil.ES_GLOSSARY;
@@ -20,7 +17,7 @@ import static com.tests.main.utils.TestUtil.NAME;
 import static com.tests.main.utils.TestUtil.QUALIFIED_NAME;
 import static com.tests.main.utils.TestUtil.REL_ANCHOR;
 import static com.tests.main.utils.TestUtil.REL_CATEGORIES;
-import static com.tests.main.utils.TestUtil.REL_CATEGORY_TERMS;
+import static com.tests.main.utils.TestUtil.REL_TERMS;
 import static com.tests.main.utils.TestUtil.REL_CHILDREN_CATS;
 import static com.tests.main.utils.TestUtil.REL_PARENT_CAT;
 import static com.tests.main.utils.TestUtil.TYPE_CATEGORY;
@@ -30,12 +27,10 @@ import static com.tests.main.utils.TestUtil.cleanUpAll;
 import static com.tests.main.utils.TestUtil.createAndGetEntity;
 import static com.tests.main.utils.TestUtil.createGlossary;
 import static com.tests.main.utils.TestUtil.getAtlasEntity;
-import static com.tests.main.utils.TestUtil.getAtlasEntityExt;
 import static com.tests.main.utils.TestUtil.getEntity;
 import static com.tests.main.utils.TestUtil.getNanoid;
 import static com.tests.main.utils.TestUtil.mapOf;
 import static com.tests.main.utils.TestUtil.updateAndGetEntity;
-import static com.tests.main.utils.TestUtil.verifyES;
 import static com.tests.main.utils.TestUtil.verifyESInLoop;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -1034,7 +1029,7 @@ public class MoveCategoriesAcrossGlossaries implements TestsMain {
 
     private static void flushCategoryRedundantRelations(AtlasEntity category) {
         category.getRelationshipAttributes().remove(REL_CHILDREN_CATS);
-        category.getRelationshipAttributes().remove(REL_CATEGORY_TERMS);
+        category.getRelationshipAttributes().remove(REL_TERMS);
     }
 
 }

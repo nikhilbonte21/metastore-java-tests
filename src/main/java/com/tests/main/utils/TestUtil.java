@@ -73,7 +73,7 @@ public class TestUtil {
     public static final String REL_ANCHOR = "anchor";
     public static final String REL_CATEGORIES = "categories";
     public static final String REL_PARENT_CAT = "parentCategory";
-    public static final String REL_CATEGORY_TERMS = "terms";
+    public static final String REL_TERMS = "terms";
     public static final String REL_CHILDREN_CATS = "childrenCategories";
     public static final String REL_MEANINGS = "meanings";
 
@@ -209,8 +209,16 @@ public class TestUtil {
         return null;
     }
 
-    public static EntityMutationResponse deleteEntitySoft(String guid) throws Exception {
+    public static EntityMutationResponse deleteEntity(String guid, String deleteType) throws Exception {
+        return getAtlasClient().deleteEntityByGuid(guid, deleteType);
+    }
+
+    public static EntityMutationResponse deleteEntityDefault(String guid) throws Exception {
         return getAtlasClient().deleteEntityByGuid(guid, null);
+    }
+
+    public static EntityMutationResponse deleteEntitySoft(String guid) throws Exception {
+        return getAtlasClient().deleteEntityByGuid(guid, "SOFT");
     }
 
     public static EntityMutationResponse deleteEntityHard(String guid) throws Exception {
@@ -371,6 +379,13 @@ public class TestUtil {
         }
 
         return ret;
+    }
+
+    public static EntityMutationResponse createEntitiesBulk(List<AtlasEntity> entities) throws Exception {
+        AtlasEntity.AtlasEntitiesWithExtInfo entitiesWithExtInfo = new AtlasEntity.AtlasEntitiesWithExtInfo();
+        entitiesWithExtInfo.setEntities(entities);
+
+        return createEntitiesBulk(entitiesWithExtInfo);
     }
 
     public static EntityMutationResponse createEntitiesBulk(AtlasEntity... entities) throws Exception {
