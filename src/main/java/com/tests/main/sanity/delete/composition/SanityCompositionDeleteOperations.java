@@ -5,10 +5,12 @@ import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasEntityHeader;
 import org.apache.atlas.model.instance.EntityMutationResponse;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,10 @@ import static com.tests.main.utils.TestUtil.getAtlasEntity;
 import static com.tests.main.utils.TestUtil.getEntity;
 import static com.tests.main.utils.TestUtil.getObjectId;
 import static com.tests.main.utils.TestUtil.getRandomName;
+import static com.tests.main.utils.TestUtil.mapOf;
 import static com.tests.main.utils.TestUtil.sleep;
+import static com.tests.main.utils.TestUtil.verifyESAttributes;
+import static com.tests.main.utils.TestUtil.verifyESDocumentNotPresent;
 import static org.apache.atlas.model.instance.AtlasEntity.Status.ACTIVE;
 import static org.apache.atlas.model.instance.AtlasEntity.Status.DELETED;
 import static org.junit.Assert.assertEquals;
@@ -100,6 +105,8 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Verify initial state
         glossary = getEntity(glossaryGuid);
         assertEquals(ACTIVE, glossary.getStatus());
+        verifyESAttributes(glossaryGuid, mapOf(ATTR_STATE, ACTIVE.name()));
+
         List<Map<String, Object>> terms = (List<Map<String, Object>>) glossary.getRelationshipAttribute(REL_TERMS);
         List<Map<String, Object>> categories = (List<Map<String, Object>>) glossary.getRelationshipAttribute(REL_CATEGORIES);
         assertNotNull(terms);
@@ -108,6 +115,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         assertEquals(NUM_CHILDREN, categories.size());
         for (String categoryGuid : categoryGuids) {
             AtlasEntity category = getEntity(categoryGuid);
+            verifyESAttributes(categoryGuid, mapOf(ATTR_STATE, ACTIVE.name()));
             List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute("terms");
             assertNotNull(categoryTerms);
             assertEquals(NUM_CHILDREN, categoryTerms.size());
@@ -126,6 +134,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Verify Glossary is deleted but still retrievable
         glossary = getEntity(glossaryGuid);
         assertEquals(DELETED, glossary.getStatus());
+        verifyESAttributes(glossaryGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify children status
         terms = (List<Map<String, Object>>) glossary.getRelationshipAttribute("terms");
@@ -138,11 +147,13 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         for (String termGuid : termGuids) {
             AtlasEntity term = getEntity(termGuid);
             assertEquals(DELETED, term.getStatus());
+            verifyESAttributes(termGuid, mapOf(ATTR_STATE, DELETED.name()));
             List<Map<String, Object>> termCategories = (List<Map<String, Object>>) term.getRelationshipAttribute(REL_CATEGORIES);
             assertTrue(termCategories.isEmpty());
         }
         for (String categoryGuid : categoryGuids) {
             AtlasEntity category = getEntity(categoryGuid);
+            verifyESAttributes(categoryGuid, mapOf(ATTR_STATE, DELETED.name()));
             List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute("terms");
             assertNotNull(categoryTerms);
             assertEquals(NUM_CHILDREN, categoryTerms.size());
@@ -168,6 +179,8 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Verify initial state
         glossary = getEntity(glossaryGuid);
         assertEquals(ACTIVE, glossary.getStatus());
+        verifyESAttributes(glossaryGuid, mapOf(ATTR_STATE, ACTIVE.name()));
+
         List<Map<String, Object>> terms = (List<Map<String, Object>>) glossary.getRelationshipAttribute(REL_TERMS);
         List<Map<String, Object>> categories = (List<Map<String, Object>>) glossary.getRelationshipAttribute(REL_CATEGORIES);
         assertNotNull(terms);
@@ -176,6 +189,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         assertEquals(NUM_CHILDREN, categories.size());
         for (String categoryGuid : categoryGuids) {
             AtlasEntity category = getEntity(categoryGuid);
+            verifyESAttributes(categoryGuid, mapOf(ATTR_STATE, ACTIVE.name()));
             List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute("terms");
             assertNotNull(categoryTerms);
             assertEquals(NUM_CHILDREN, categoryTerms.size());
@@ -193,6 +207,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Verify Glossary is deleted but still retrievable
         glossary = getEntity(glossaryGuid);
         assertEquals(DELETED, glossary.getStatus());
+        verifyESAttributes(glossaryGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify children status
         terms = (List<Map<String, Object>>) glossary.getRelationshipAttribute("terms");
@@ -205,11 +220,13 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         for (String termGuid : termGuids) {
             AtlasEntity term = getEntity(termGuid);
             assertEquals(DELETED, term.getStatus());
+            verifyESAttributes(termGuid, mapOf(ATTR_STATE, DELETED.name()));
             List<Map<String, Object>> termCategories = (List<Map<String, Object>>) term.getRelationshipAttribute(REL_CATEGORIES);
             assertTrue(termCategories.isEmpty());
         }
         for (String categoryGuid : categoryGuids) {
             AtlasEntity category = getEntity(categoryGuid);
+            verifyESAttributes(categoryGuid, mapOf(ATTR_STATE, DELETED.name()));
             List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute("terms");
             assertNotNull(categoryTerms);
             assertEquals(NUM_CHILDREN, categoryTerms.size());
@@ -251,7 +268,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
 
         // Verify Glossary is not retrievable
         try {
-            glossary = getEntity(glossaryGuid);
+            getEntity(glossaryGuid);
             fail("Glossary should not be retrievable after hard delete");
         } catch (Exception e) {
             String errorMessage = e.getMessage();
@@ -264,7 +281,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Verify all children are not retrievable
         for (String termGuid : termGuids) {
             try {
-                AtlasEntity term = getEntity(termGuid);
+                getEntity(termGuid);
                 fail("Term should not be retrievable after hard delete");
             } catch (Exception e) {
                 String errorMessage = e.getMessage();
@@ -276,7 +293,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         }
         for (String categoryGuid : categoryGuids) {
             try {
-                AtlasEntity category = getEntity(categoryGuid);
+                getEntity(categoryGuid);
                 fail("Category should not be retrievable after hard delete");
             } catch (Exception e) {
                 String errorMessage = e.getMessage();
@@ -286,6 +303,12 @@ public class SanityCompositionDeleteOperations implements TestsMain {
                 assertEquals("404", errorMessage);
             }
         }
+
+        List<String> allGuids = new ArrayList<>();
+        allGuids.add(glossaryGuid);
+        allGuids.addAll(termGuids);
+        allGuids.addAll(categoryGuids);
+        verifyESDocumentNotPresent(Arrays.toString(allGuids.toArray()));
 
         LOG.info("<< testHardDelete");
     }
@@ -322,7 +345,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
 
         // Verify Glossary is not retrievable
         try {
-            glossary = getEntity(glossaryGuid);
+            getEntity(glossaryGuid);
             fail("Glossary should not be retrievable after purge delete");
         } catch (Exception e) {
             String errorMessage = e.getMessage();
@@ -335,7 +358,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Verify all children are not retrievable
         for (String termGuid : termGuids) {
             try {
-                AtlasEntity term = getEntity(termGuid);
+                getEntity(termGuid);
                 fail("Term should not be retrievable after purge delete");
             } catch (Exception e) {
                 String errorMessage = e.getMessage();
@@ -347,7 +370,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         }
         for (String categoryGuid : categoryGuids) {
             try {
-                AtlasEntity category = getEntity(categoryGuid);
+                getEntity(categoryGuid);
                 fail("Category should not be retrievable after purge delete");
             } catch (Exception e) {
                 String errorMessage = e.getMessage();
@@ -357,6 +380,12 @@ public class SanityCompositionDeleteOperations implements TestsMain {
                 assertEquals("404", errorMessage);
             }
         }
+
+        List<String> allGuids = new ArrayList<>();
+        allGuids.add(glossaryGuid);
+        allGuids.addAll(termGuids);
+        allGuids.addAll(categoryGuids);
+        verifyESDocumentNotPresent(Arrays.toString(allGuids.toArray()));
 
         LOG.info("<< testPurgeDelete");
     }

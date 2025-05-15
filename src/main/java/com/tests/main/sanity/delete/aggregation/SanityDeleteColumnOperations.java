@@ -74,6 +74,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         // Verify column is deleted but still retrievable
         AtlasEntity column = getEntity(columnGuid);
         assertEquals(DELETED, column.getStatus());
+        verifyESAttributes(columnGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify table is still active and has one column relationship as DELETED
         table = getEntity(tableGuid);
@@ -82,6 +83,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         assertNotNull(tableColumns);
         assertEquals(1, tableColumns.size());
         assertEquals("DELETED", ((Map<String, Object>)tableColumns.get(0)).get("relationshipStatus"));
+        verifyESAttributes(tableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
 
         LOG.info("<< testDefaultDelete");
     }
@@ -116,6 +118,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         // Verify column is deleted but still retrievable
         AtlasEntity column = getEntity(columnGuid);
         assertEquals(DELETED, column.getStatus());
+        verifyESAttributes(columnGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify table is still active and has one column relationship as DELETED
         table = getEntity(tableGuid);
@@ -157,6 +160,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
 
         // Verify column is not retrievable
         try {
+            verifyESDocumentNotPresent(columnGuid);
             getEntity(columnGuid);
             fail("Column should not be retrievable after hard delete");
         } catch (Exception e) {
@@ -170,6 +174,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         // Verify table is still active and has no column relationship
         table = getEntity(tableGuid);
         assertEquals(ACTIVE, table.getStatus());
+        verifyESAttributes(tableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         tableColumns = (List<Map<String, Object>>) table.getRelationshipAttribute(COLUMNS);
         assertNotNull(tableColumns);
         assertEquals(0, tableColumns.size());
@@ -206,6 +211,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
 
         // Verify column is not retrievable
         try {
+            verifyESDocumentNotPresent(columnGuid);
             getEntity(columnGuid);
             fail("Column should not be retrievable after purge delete");
         } catch (Exception e) {
@@ -219,6 +225,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         // Verify table is still active and has no column relationship
         table = getEntity(tableGuid);
         assertEquals(ACTIVE, table.getStatus());
+        verifyESAttributes(tableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         tableColumns = (List<Map<String, Object>>) table.getRelationshipAttribute(COLUMNS);
         assertNotNull(tableColumns);
         assertEquals(0, tableColumns.size());

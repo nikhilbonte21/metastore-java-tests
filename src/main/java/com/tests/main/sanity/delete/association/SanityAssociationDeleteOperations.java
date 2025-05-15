@@ -90,6 +90,7 @@ public class SanityAssociationDeleteOperations implements TestsMain {
         // Verify fact table is deleted but still retrievable
         factTable = getEntity(factTableGuid);
         assertEquals(DELETED, factTable.getStatus());
+        verifyESAttributes(factTableGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify dimension tables are still active and relationships are marked as DELETED
         for (String dimensionTableGuid : dimensionTableGuids) {
@@ -99,6 +100,7 @@ public class SanityAssociationDeleteOperations implements TestsMain {
             assertNotNull(factsList);
             assertEquals(1, factsList.size());
             assertEquals("ACTIVE", factsList.get(0).get("relationshipStatus"));
+            verifyESAttributes(dimensionTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         }
 
         // Verify fact table's dimensions list is empty
@@ -139,6 +141,7 @@ public class SanityAssociationDeleteOperations implements TestsMain {
         // Verify fact table is deleted but still retrievable
         factTable = getEntity(factTableGuid);
         assertEquals(DELETED, factTable.getStatus());
+        verifyESAttributes(factTableGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify dimension tables are still active and relationships are marked as DELETED
         for (String dimensionTableGuid : dimensionTableGuids) {
@@ -148,6 +151,7 @@ public class SanityAssociationDeleteOperations implements TestsMain {
             assertNotNull(factsList);
             assertEquals(1, factsList.size());
             assertEquals("ACTIVE", factsList.get(0).get("relationshipStatus"));
+            verifyESAttributes(dimensionTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         }
 
         // Verify fact table's dimensions list is empty
@@ -187,7 +191,8 @@ public class SanityAssociationDeleteOperations implements TestsMain {
 
         // Verify fact table is not retrievable
         try {
-            factTable = getEntity(factTableGuid);
+            verifyESDocumentNotPresent(factTableGuid);
+            getEntity(factTableGuid);
             fail("Fact table should not be retrievable after hard delete");
         } catch (Exception e) {
             String errorMessage = e.getMessage();
@@ -201,6 +206,7 @@ public class SanityAssociationDeleteOperations implements TestsMain {
         for (String dimensionTableGuid : dimensionTableGuids) {
             AtlasEntity dimensionTable = getEntity(dimensionTableGuid);
             assertEquals(ACTIVE, dimensionTable.getStatus());
+            verifyESAttributes(dimensionTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
             // For association, dimension table's facts list should be empty but not null
             List<Map<String, Object>> factsList = (List<Map<String, Object>>) dimensionTable.getRelationshipAttribute(FACTS);
             assertNotNull("Dimension table should have empty facts list for association", factsList);
@@ -240,7 +246,8 @@ public class SanityAssociationDeleteOperations implements TestsMain {
 
         // Verify fact table is not retrievable
         try {
-            factTable = getEntity(factTableGuid);
+            verifyESDocumentNotPresent(factTableGuid);
+            getEntity(factTableGuid);
             fail("Fact table should not be retrievable after purge delete");
         } catch (Exception e) {
             String errorMessage = e.getMessage();
@@ -254,6 +261,7 @@ public class SanityAssociationDeleteOperations implements TestsMain {
         for (String dimensionTableGuid : dimensionTableGuids) {
             AtlasEntity dimensionTable = getEntity(dimensionTableGuid);
             assertEquals(ACTIVE, dimensionTable.getStatus());
+            verifyESAttributes(dimensionTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
             // For association, dimension table's facts list should be empty but not null
             List<Map<String, Object>> factsList = (List<Map<String, Object>>) dimensionTable.getRelationshipAttribute(FACTS);
             assertNotNull("Dimension table should have empty facts list for association", factsList);

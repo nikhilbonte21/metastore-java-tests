@@ -92,6 +92,7 @@ public class SanityTableDeleteOperations implements TestsMain {
         // Verify table is deleted but still retrievable
         table = getEntity(tableGuid);
         assertEquals(DELETED, table.getStatus());
+        verifyESAttributes(tableGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify columns are still active but relationships are marked as deleted
         for (String columnGuid : columnGuids) {
@@ -100,6 +101,7 @@ public class SanityTableDeleteOperations implements TestsMain {
             Map<String, Object> parentRelation = (Map<String, Object>) column.getRelationshipAttribute(TABLE);
             assertNotNull(parentRelation);
             assertEquals("ACTIVE", parentRelation.get("relationshipStatus"));
+            verifyESAttributes(columnGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         }
 
         LOG.info("<< testDefaultDelete");
@@ -134,14 +136,17 @@ public class SanityTableDeleteOperations implements TestsMain {
         // Verify table is deleted but still retrievable
         table = getEntity(tableGuid);
         assertEquals(DELETED, table.getStatus());
+        verifyESAttributes(tableGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify columns are still active but relationships are marked as deleted
         for (String columnGuid : columnGuids) {
             AtlasEntity column = getEntity(columnGuid);
             assertEquals(ACTIVE, column.getStatus());
+            verifyESAttributes(columnGuid, mapOf(ATTR_STATE, ACTIVE.name()));
             Map<String, Object> parentRelation = (Map<String, Object>) column.getRelationshipAttribute(TABLE);
             assertNotNull(parentRelation);
-            assertEquals("ACTIVE", parentRelation.get("relationshipStatus"));
+            assertEquals(ACTIVE.name(), parentRelation.get("relationshipStatus"));
+            verifyESAttributes(columnGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         }
 
         LOG.info("<< testSoftDelete");
@@ -175,7 +180,8 @@ public class SanityTableDeleteOperations implements TestsMain {
 
         // Verify table is not retrievable
         try {
-            table = getEntity(tableGuid);
+            verifyESDocumentNotPresent(tableGuid);
+            getEntity(tableGuid);
             fail("Table should not be retrievable after hard delete");
         } catch (Exception e) {
             String errorMessage = e.getMessage();
@@ -189,6 +195,7 @@ public class SanityTableDeleteOperations implements TestsMain {
         for (String columnGuid : columnGuids) {
             AtlasEntity column = getEntity(columnGuid);
             assertEquals(ACTIVE, column.getStatus());
+            verifyESAttributes(columnGuid, mapOf(ATTR_STATE, ACTIVE.name()));
             Map<String, Object> parentRelation = (Map<String, Object>) column.getRelationshipAttribute(TABLE);
             assertNull("Column should not have table relationship after hard delete", parentRelation);
         }
@@ -224,7 +231,8 @@ public class SanityTableDeleteOperations implements TestsMain {
 
         // Verify table is not retrievable
         try {
-            table = getEntity(tableGuid);
+            verifyESDocumentNotPresent(tableGuid);
+            getEntity(tableGuid);
             fail("Table should not be retrievable after purge delete");
         } catch (Exception e) {
             String errorMessage = e.getMessage();
@@ -238,6 +246,7 @@ public class SanityTableDeleteOperations implements TestsMain {
         for (String columnGuid : columnGuids) {
             AtlasEntity column = getEntity(columnGuid);
             assertEquals(ACTIVE, column.getStatus());
+            verifyESAttributes(columnGuid, mapOf(ATTR_STATE, ACTIVE.name()));
             Map<String, Object> parentRelation = (Map<String, Object>) column.getRelationshipAttribute(TABLE);
             assertNull("Column should not have table relationship after purge delete", parentRelation);
         }

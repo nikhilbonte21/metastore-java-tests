@@ -166,7 +166,11 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
         typesDef.setEntityDefs(Collections.singletonList(entityDef));
         
         // Create type in Atlas
-        TestUtil.createTypeDefs(typesDef);
+        try {
+            TestUtil.createTypeDefs(typesDef);
+        } catch (Exception e) {
+            LOG.warn("Type {} already exists", TYPE_TEST_BASIC);
+        }
     }
 
     @Test
@@ -188,6 +192,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(testValue, entity.getAttribute(ATTR_STRING));
+        verifyESAttributes(entityGuid, mapOf(ATTR_STRING, testValue));
 
         // Test 2: Update string value
         String updatedValue = "updated_string_value";
@@ -197,6 +202,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(updatedValue, entity.getAttribute(ATTR_STRING));
+        verifyESAttributes(entityGuid, mapOf(ATTR_STRING, updatedValue));
 
         // Test 3: Set null value
         entity.setAttribute(ATTR_STRING, null);
@@ -205,6 +211,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertNull(entity.getAttribute(ATTR_STRING));
+        verifyESAttributes(entityGuid, mapOf(ATTR_STRING, null));
 
         LOG.info(">> testStringAttribute completed");
     }
@@ -225,6 +232,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
         entity.setAttribute(ATTR_ENUM, testValue);
         createEntity(entity);
         sleep(2);
+        verifyESAttributes(entityGuid, mapOf(ATTR_ENUM, testValue));
 
         entity = getEntity(entityGuid);
         assertEquals(testValue, entity.getAttribute(ATTR_ENUM));
@@ -237,6 +245,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(updatedValue, entity.getAttribute(ATTR_ENUM));
+        verifyESAttributes(entityGuid, mapOf(ATTR_ENUM, updatedValue));
 
         // Test 3: Set null value
         entity.setAttribute(ATTR_ENUM, null);
@@ -245,6 +254,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertNull(entity.getAttribute(ATTR_ENUM));
+        verifyESAttributes(entityGuid, mapOf(ATTR_ENUM, null));
 
         LOG.info(">> testEnumAttribute completed");
     }
@@ -267,6 +277,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertTrue((Boolean) entity.getAttribute(ATTR_BOOLEAN));
+        verifyESAttributes(entityGuid, mapOf(ATTR_BOOLEAN, true));
 
         // Test 2: Set false value
         entity.setAttribute(ATTR_BOOLEAN, false);
@@ -275,6 +286,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertFalse((Boolean) entity.getAttribute(ATTR_BOOLEAN));
+        verifyESAttributes(entityGuid, mapOf(ATTR_BOOLEAN, false));
 
         // Test 3: Set null value
         entity.setAttribute(ATTR_BOOLEAN, null);
@@ -283,6 +295,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertFalse((Boolean) entity.getAttribute(ATTR_BOOLEAN));
+        verifyESAttributes(entityGuid, mapOf(ATTR_BOOLEAN, false));
 
         LOG.info(">> testBooleanAttribute completed");
     }
@@ -300,6 +313,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         // Test 0: Verify default value
         assertEquals(DEFAULT_LONG, ((Number) entity.getAttribute(ATTR_LONG)).longValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_LONG, DEFAULT_LONG));
 
         // Test 1: Set positive long value
         long testValue = 123456789L;
@@ -309,6 +323,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(testValue, ((Number) entity.getAttribute(ATTR_LONG)).longValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_LONG, testValue));
 
         // Test 2: Set negative long value
         long negativeValue = -987654321L;
@@ -318,6 +333,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(negativeValue, ((Number) entity.getAttribute(ATTR_LONG)).longValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_LONG, negativeValue));
 
         // Test 3: Set null value
         entity.setAttribute(ATTR_LONG, null);
@@ -326,6 +342,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(DEFAULT_LONG, ((Number) entity.getAttribute(ATTR_LONG)).longValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_LONG, DEFAULT_LONG));
 
         LOG.info(">> testLongAttribute completed");
     }
@@ -343,6 +360,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         // Test 0: Verify default value
         assertEquals(DEFAULT_FLOAT, ((Number) entity.getAttribute(ATTR_FLOAT)).floatValue(), 0.0001f);
+        verifyESAttributes(entityGuid, mapOf(ATTR_FLOAT, DEFAULT_FLOAT));
 
         // Test 1: Set positive float value
         float testValue = 123.456f;
@@ -352,6 +370,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(testValue, ((Number) entity.getAttribute(ATTR_FLOAT)).floatValue(), 0.0001f);
+        verifyESAttributes(entityGuid, mapOf(ATTR_FLOAT, testValue));
 
         // Test 2: Set negative float value
         float negativeValue = -987.654f;
@@ -361,6 +380,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(negativeValue, ((Number) entity.getAttribute(ATTR_FLOAT)).floatValue(), 0.0001f);
+        verifyESAttributes(entityGuid, mapOf(ATTR_FLOAT, negativeValue));
 
         // Test 3: Set null value
         entity.setAttribute(ATTR_FLOAT, null);
@@ -369,6 +389,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(DEFAULT_FLOAT, ((Number) entity.getAttribute(ATTR_FLOAT)).floatValue(), 0.0001f);
+        verifyESAttributes(entityGuid, mapOf(ATTR_FLOAT, DEFAULT_FLOAT));
 
         LOG.info(">> testFloatAttribute completed");
     }
@@ -386,6 +407,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         // Test 0: Verify default value
         assertEquals(DEFAULT_DOUBLE, ((Number) entity.getAttribute(ATTR_DOUBLE)).doubleValue(), 0.0001);
+        verifyESAttributes(entityGuid, mapOf(ATTR_DOUBLE, DEFAULT_DOUBLE));
 
         // Test 1: Set positive double value
         double testValue = 123.456789;
@@ -395,6 +417,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(testValue, ((Number) entity.getAttribute(ATTR_DOUBLE)).doubleValue(), 0.0001);
+        verifyESAttributes(entityGuid, mapOf(ATTR_DOUBLE, testValue));
 
         // Test 2: Set negative double value
         double negativeValue = -987.654321;
@@ -404,6 +427,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(negativeValue, ((Number) entity.getAttribute(ATTR_DOUBLE)).doubleValue(), 0.0001);
+        verifyESAttributes(entityGuid, mapOf(ATTR_DOUBLE, negativeValue));
 
         // Test 3: Set null value
         entity.setAttribute(ATTR_DOUBLE, null);
@@ -412,6 +436,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(DEFAULT_DOUBLE, ((Number) entity.getAttribute(ATTR_DOUBLE)).doubleValue(), 0.0001);
+        verifyESAttributes(entityGuid, mapOf(ATTR_DOUBLE, DEFAULT_DOUBLE));
 
         LOG.info(">> testDoubleAttribute completed");
     }
@@ -429,6 +454,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         // Test 0: Verify default value
         assertEquals(DEFAULT_INT, ((Number) entity.getAttribute(ATTR_INT)).intValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_INT, DEFAULT_INT));
 
         // Test 1: Set positive int value
         int testValue = 123456;
@@ -438,6 +464,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(testValue, ((Number) entity.getAttribute(ATTR_INT)).intValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_INT, testValue));
 
         // Test 2: Set negative int value
         int negativeValue = -987654;
@@ -447,6 +474,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(negativeValue, ((Number) entity.getAttribute(ATTR_INT)).intValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_INT, negativeValue));
 
         // Test 3: Set null value
         entity.setAttribute(ATTR_INT, null);
@@ -455,6 +483,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(DEFAULT_INT, ((Number) entity.getAttribute(ATTR_INT)).intValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_INT, DEFAULT_INT));
 
         LOG.info(">> testIntAttribute completed");
     }
@@ -479,6 +508,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
         entity = getEntity(entityGuid);
         Long retrievedMillis = (Long) entity.getAttribute(ATTR_DATE);
         assertEquals(currentDate.getTime(), retrievedMillis.longValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_DATE, currentDate.getTime()));
 
         // Test 2: Set specific date
         Calendar calendar = Calendar.getInstance();
@@ -493,6 +523,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
         entity = getEntity(entityGuid);
         retrievedMillis = (Long) entity.getAttribute(ATTR_DATE);
         assertEquals(specificDate.getTime(), retrievedMillis.longValue());
+        verifyESAttributes(entityGuid, mapOf(ATTR_DATE, specificDate.getTime()));
 
         // Test 3: Set null value
         entity.setAttribute(ATTR_DATE, null);
@@ -501,6 +532,7 @@ public class SanityBasicTypeAttributesMutations implements TestsMain {
 
         entity = getEntity(entityGuid);
         assertEquals(0, entity.getAttribute(ATTR_DATE));
+        verifyESAttributes(entityGuid, mapOf(ATTR_DATE, 0));
 
         LOG.info(">> testDateAttribute completed");
     }

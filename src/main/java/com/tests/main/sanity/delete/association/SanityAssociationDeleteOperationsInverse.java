@@ -89,10 +89,12 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Verify dimension table is deleted but still retrievable
         AtlasEntity dimensionTable = getEntity(dimensionTableGuid);
         assertEquals(DELETED, dimensionTable.getStatus());
+        verifyESAttributes(dimensionTableGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify fact table is still active and relationship remains ACTIVE
         factTable = getEntity(factTableGuid);
         assertEquals(ACTIVE, factTable.getStatus());
+        verifyESAttributes(factTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         List<Map<String, Object>> dimensionsList = (List<Map<String, Object>>) factTable.getRelationshipAttribute(DIMENSIONS);
         assertNotNull("Fact table should have dimensions list for association", dimensionsList);
         assertEquals("Fact table should maintain relationship after default delete", 1, dimensionsList.size());
@@ -136,10 +138,12 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Verify dimension table is deleted but still retrievable
         AtlasEntity dimensionTable = getEntity(dimensionTableGuid);
         assertEquals(DELETED, dimensionTable.getStatus());
+        verifyESAttributes(dimensionTableGuid, mapOf(ATTR_STATE, DELETED.name()));
 
         // Verify fact table is still active and relationship remains ACTIVE
         factTable = getEntity(factTableGuid);
         assertEquals(ACTIVE, factTable.getStatus());
+        verifyESAttributes(factTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         List<Map<String, Object>> dimensionsList = (List<Map<String, Object>>) factTable.getRelationshipAttribute(DIMENSIONS);
         assertNotNull("Fact table should have dimensions list for association", dimensionsList);
         assertEquals("Fact table should maintain relationship after soft delete", 1, dimensionsList.size());
@@ -182,7 +186,8 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
 
         // Verify dimension table is not retrievable
         try {
-            AtlasEntity dimensionTable = getEntity(dimensionTableGuid);
+            verifyESDocumentNotPresent(dimensionTableGuid);
+            getEntity(dimensionTableGuid);
             fail("Dimension table should not be retrievable after hard delete");
         } catch (Exception e) {
             String errorMessage = e.getMessage();
@@ -195,6 +200,7 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Verify fact table is still active and relationship list is empty but not null
         factTable = getEntity(factTableGuid);
         assertEquals(ACTIVE, factTable.getStatus());
+        verifyESAttributes(factTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         List<Map<String, Object>> dimensionsList = (List<Map<String, Object>>) factTable.getRelationshipAttribute(DIMENSIONS);
         assertNotNull("Fact table should have empty dimensions list for association", dimensionsList);
         assertEquals("Fact table's dimensions list should be empty", 0, dimensionsList.size());
@@ -230,7 +236,8 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
 
         // Verify dimension table is not retrievable
         try {
-            AtlasEntity dimensionTable = getEntity(dimensionTableGuid);
+            verifyESDocumentNotPresent(dimensionTableGuid);
+            getEntity(dimensionTableGuid);
             fail("Dimension table should not be retrievable after purge delete");
         } catch (Exception e) {
             String errorMessage = e.getMessage();
@@ -243,6 +250,7 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Verify fact table is still active and relationship list is empty but not null
         factTable = getEntity(factTableGuid);
         assertEquals(ACTIVE, factTable.getStatus());
+        verifyESAttributes(factTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
         List<Map<String, Object>> dimensionsList = (List<Map<String, Object>>) factTable.getRelationshipAttribute(DIMENSIONS);
         assertNotNull("Fact table should have empty dimensions list for association", dimensionsList);
         assertEquals("Fact table's dimensions list should be empty", 0, dimensionsList.size());

@@ -381,6 +381,21 @@ public class TestUtil {
         return ret;
     }
 
+    public static List listOf(Object... items) throws Exception {
+        List<Object> ret = new ArrayList();
+
+        if (items != null) {
+            int size = items.length;
+
+            ret.addAll(Arrays.asList(items).subList(0, size));
+
+        } else {
+            throw new Exception("Please pass items to add into list");
+        }
+
+        return ret;
+    }
+
     public static EntityMutationResponse createEntitiesBulk(List<AtlasEntity> entities) throws Exception {
         AtlasEntity.AtlasEntitiesWithExtInfo entitiesWithExtInfo = new AtlasEntity.AtlasEntitiesWithExtInfo();
         entitiesWithExtInfo.setEntities(entities);
@@ -1054,5 +1069,90 @@ public class TestUtil {
         }
 
         return ret;
+    }
+
+    public static void verifyESAttributes(String assetGuid, Map<String, Object> expectedAttributes) throws Exception {
+        SearchHit[] searchHits = ESUtil.searchWithGuid(assetGuid).getHits().getHits();
+        assertTrue("No ES document found for guid: " + assetGuid, searchHits.length > 0);
+
+        for (SearchHit hit : searchHits) {
+            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+            
+            // Verify each expected attribute
+            for (Map.Entry<String, Object> expectedEntry : expectedAttributes.entrySet()) {
+                String attrName = expectedEntry.getKey();
+                Object expectedValue = expectedEntry.getValue();
+                Object actualValue = sourceAsMap.get(attrName);
+
+                if (expectedValue == null) {
+                    assertFalse(sourceAsMap.containsKey(expectedValue));
+                } else {
+                    // Verify attribute exists
+                    assertNotNull("Attribute '" + attrName + "' not found in ES document", actualValue);
+
+                    // Handle different value types
+                    if (expectedValue instanceof List) {
+                        // Handle list values - order doesn't matter
+                        assertTrue("Attribute '" + attrName + "' should be a List", actualValue instanceof List);
+                        List<?> expectedList = (List<?>) expectedValue;
+                        List<?> actualList = (List<?>) actualValue;
+                        
+                        // Verify no extra values
+                        assertEquals("Attribute '" + attrName + "' has unexpected size: ",
+                                expectedList.size(), actualList.size());
+
+                        // Verify all expected values are present
+                        for (Object expectedItem : expectedList) {
+                            boolean found = false;
+                            for (Object actualItem : actualList) {
+                                if (isValueEqual(expectedItem, actualItem)) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            assertTrue("Expected value '" + expectedItem + "' not found in attribute '" + attrName + "', actual values are " + actualList, found);
+                        }
+                    } else {
+                        // Handle simple values
+                        assertTrue("Attribute '" + attrName + "' value mismatch, expected: " + expectedValue + ", actual: " + actualValue,
+                                isValueEqual(expectedValue, actualValue));
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean isValueEqual(Object expected, Object actual) {
+        if (expected == null) {
+            return actual == null;
+        }
+        if (actual == null) {
+            return false;
+        }
+
+        // Handle number types
+        if (expected instanceof Number && actual instanceof Number) {
+            // Handle floating point numbers specifically
+            if (expected instanceof Float || expected instanceof Double || 
+                actual instanceof Float || actual instanceof Double) {
+                // Convert both to float and round to 6 decimal places
+                float expectedFloat = Math.round(((Number) expected).floatValue() * 1000000.0f) / 1000000.0f;
+                float actualFloat = Math.round(((Number) actual).floatValue() * 1000000.0f) / 1000000.0f;
+                return expectedFloat == actualFloat;
+            }
+            
+            // For other number types (Integer, Long, etc.), use string comparison
+            return String.valueOf(expected).equals(String.valueOf(actual));
+        }
+
+        // Handle other types by converting to string
+        return String.valueOf(expected).equals(String.valueOf(actual));
+    }
+
+    public static void verifyESDocumentNotPresent(String... assetGuids) throws Exception {
+        for (String guid : assetGuids) {
+            SearchHit[] searchHits = ESUtil.searchWithGuid(guid).getHits().getHits();
+            assertEquals("ES document should not exist for guid: " + guid, 0, searchHits.length);
+        }
     }
 }

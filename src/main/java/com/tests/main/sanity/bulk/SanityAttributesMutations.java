@@ -22,8 +22,11 @@ import static com.tests.main.utils.TestUtil.createEntity;
 import static com.tests.main.utils.TestUtil.getAtlasEntity;
 import static com.tests.main.utils.TestUtil.getEntity;
 import static com.tests.main.utils.TestUtil.getObjectIdsAsList;
+import static com.tests.main.utils.TestUtil.listOf;
 import static com.tests.main.utils.TestUtil.mapOf;
 import static com.tests.main.utils.TestUtil.sleep;
+import static com.tests.main.utils.TestUtil.verifyES;
+import static com.tests.main.utils.TestUtil.verifyESAttributes;
 import static org.junit.Assert.*;
 
 
@@ -779,7 +782,7 @@ public class SanityAttributesMutations implements TestsMain {
         table = getEntity(tableGuid);
 
         // 1.Add one value in list
-        table.setAttribute(ATTR_OWNER_USERS, Collections.singleton("value_1"));
+        table.setAttribute(ATTR_OWNER_USERS, listOf("value_1"));
         createEntity(table);
 
         sleep(2);
@@ -790,6 +793,7 @@ public class SanityAttributesMutations implements TestsMain {
 
         assertEquals(1, ownerUsers.size());
         assertEquals("value_1", ownerUsers.get(0));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, listOf("value_1")));
 
 
         // 2. Add two more values in list
@@ -810,6 +814,7 @@ public class SanityAttributesMutations implements TestsMain {
         assertEquals("value_0", ownerUsers.get(0));
         assertEquals("value_1", ownerUsers.get(1));
         assertEquals("value_2", ownerUsers.get(2));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         // 3. Remove one value from list
         ownerUsers = new ArrayList<>(2);
@@ -827,6 +832,7 @@ public class SanityAttributesMutations implements TestsMain {
         assertEquals(2, ownerUsers.size());
         assertEquals("value_0", ownerUsers.get(0));
         assertEquals("value_2", ownerUsers.get(1));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         // 4. Add one + Remove one value
         ownerUsers = new ArrayList<>(2);
@@ -844,6 +850,7 @@ public class SanityAttributesMutations implements TestsMain {
         assertEquals(2, ownerUsers.size());
         assertEquals("value_1", ownerUsers.get(0));
         assertEquals("value_2", ownerUsers.get(1));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         // 5. Remove all values from list
         table.setAttribute(ATTR_OWNER_USERS, null);
@@ -873,7 +880,7 @@ public class SanityAttributesMutations implements TestsMain {
         assertTrue(ownerUsers.contains("value_0"));
         assertTrue(ownerUsers.contains("value_2"));
         assertTrue(ownerUsers.contains("value_1"));
-
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         LOG.info(">> arrayOfStrings");
     }

@@ -60,7 +60,6 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
             arrayOfStrings(); // ComplexTest.stringArrayTest
             arrayOfEnums(); // ComplexTest.enumArrayTest
             arrayOfMaps(); // TableauWorkbook.projectHierarchy
-
             arrayOfStructs(); // Table.sourceReadRecentUserRecordList
 
             arrayOfTagAttachments();
@@ -148,9 +147,12 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         // Create type definitions
         AtlasTypesDef typesDef = new AtlasTypesDef();
         typesDef.setEntityDefs(Collections.singletonList(complexTestDef));
-        
-        // Create types in Atlas
-        TestUtil.createTypeDefs(typesDef);
+        try {
+            // Create types in Atlas
+            TestUtil.createTypeDefs(typesDef);
+        } catch (Exception e) {
+            LOG.warn(e.getMessage());
+        }
     }
 
     @Test
@@ -186,6 +188,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         List<String> ownerUsers = (List<String>) table.getAttribute(ATTR_OWNER_USERS);
         assertEquals(1, ownerUsers.size());
         assertEquals("user_1", ownerUsers.get(0));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         // 2. Add two more values in array
         ownerUsers = new ArrayList<>(3);
@@ -204,6 +207,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertTrue(ownerUsers.contains("user_0"));
         assertTrue(ownerUsers.contains("user_1"));
         assertTrue(ownerUsers.contains("user_2"));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         // 3. Remove one value from array
         ownerUsers = new ArrayList<>(2);
@@ -220,6 +224,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertEquals(2, ownerUsers.size());
         assertTrue(ownerUsers.contains("user_0"));
         assertTrue(ownerUsers.contains("user_2"));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         // 4. Add one + Remove one value
         ownerUsers = new ArrayList<>(2);
@@ -236,6 +241,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertEquals(2, ownerUsers.size());
         assertTrue(ownerUsers.contains("user_1"));
         assertTrue(ownerUsers.contains("user_2"));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         // 5. Remove all values from array
         table.setAttribute(ATTR_OWNER_USERS, null);
@@ -246,6 +252,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
         assertEquals(0, ((List) table.getAttribute(ATTR_OWNER_USERS)).size());
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, null));
 
         // 6. Add all 3 values back to array
         ownerUsers = new ArrayList<>(3);
@@ -264,6 +271,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertTrue(ownerUsers.contains("user_0"));
         assertTrue(ownerUsers.contains("user_1"));
         assertTrue(ownerUsers.contains("user_2"));
+        verifyESAttributes(tableGuid, mapOf(ATTR_OWNER_USERS, ownerUsers));
 
         LOG.info("<< arrayOfStrings");
     }
@@ -543,6 +551,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         List<String> enumArray = (List<String>) complexTest.getAttribute(ATTR_ENUM_ARRAY);
         assertEquals(1, enumArray.size());
         assertEquals("Credits", enumArray.get(0));
+        verifyESAttributes(complexTestGuid, mapOf(ATTR_ENUM_ARRAY, enumArray));
 
         // 2. Add two more values in array
         enumArray = new ArrayList<>(3);
@@ -561,6 +570,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertEquals("Credits", enumArray.get(0));
         assertEquals("bytes", enumArray.get(1));
         assertEquals("slot-ms", enumArray.get(2));
+        verifyESAttributes(complexTestGuid, mapOf(ATTR_ENUM_ARRAY, enumArray));
 
         // 3. Remove one value from array
         enumArray = new ArrayList<>(2);
@@ -577,6 +587,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertEquals(2, enumArray.size());
         assertEquals("Credits", enumArray.get(0));
         assertEquals("slot-ms", enumArray.get(1));
+        verifyESAttributes(complexTestGuid, mapOf(ATTR_ENUM_ARRAY, enumArray));
 
         // 4. Add one + Remove one value
         enumArray = new ArrayList<>(2);
@@ -593,6 +604,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertEquals(2, enumArray.size());
         assertEquals("bytes", enumArray.get(0));
         assertEquals("slot-ms", enumArray.get(1));
+        verifyESAttributes(complexTestGuid, mapOf(ATTR_ENUM_ARRAY, enumArray));
 
         // 5. Remove all values from array
         complexTest.setAttribute(ATTR_ENUM_ARRAY, null);
@@ -621,6 +633,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertTrue(enumArray.contains("Credits"));
         assertTrue(enumArray.contains("bytes"));
         assertTrue(enumArray.contains("slot-ms"));
+        verifyESAttributes(complexTestGuid, mapOf(ATTR_ENUM_ARRAY, enumArray));
 
         LOG.info("<< arrayOfEnums");
     }
@@ -695,8 +708,8 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
 
         List<Map<String, Object>> sourceTagValues = (List<Map<String, Object>>) attributes.get("sourceTagValue");
         assertEquals(1, sourceTagValues.size());
-        assertEquals("has_pii", sourceTagValues.get(0).get("tagAttachmentKey"));
-        assertEquals("true", sourceTagValues.get(0).get("tagAttachmentValue"));
+        assertEquals("has_pii", ((Map<String, Object>) sourceTagValues.get(0).get("attributes")).get("tagAttachmentKey"));
+        assertEquals("true", ((Map<String, Object>) sourceTagValues.get(0).get("attributes")).get("tagAttachmentValue"));
 
         // 2. Add two more tag attachments in array
         tagAttachments = new ArrayList<>();
@@ -756,22 +769,22 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         assertEquals("test.tag.1", tag1.get("sourceTagQualifiedName"));
         assertEquals("tag_guid_1", tag1.get("sourceTagGuid"));
         List<Map<String, Object>> values1 = (List<Map<String, Object>>) tag1.get("sourceTagValue");
-        assertEquals("has_pii", values1.get(0).get("tagAttachmentKey"));
-        assertEquals("true", values1.get(0).get("tagAttachmentValue"));
+        assertEquals("has_pii", ((Map<String, Object>) values1.get(0).get("attributes")).get("tagAttachmentKey"));
+        assertEquals("true", ((Map<String, Object>) values1.get(0).get("attributes")).get("tagAttachmentValue"));
 
         Map<String, Object> tag2 = tagMap.get("test_tag_2");
         assertEquals("test.tag.2", tag2.get("sourceTagQualifiedName"));
         assertEquals("tag_guid_2", tag2.get("sourceTagGuid"));
         List<Map<String, Object>> values2 = (List<Map<String, Object>>) tag2.get("sourceTagValue");
-        assertEquals("type_pii", values2.get(0).get("tagAttachmentKey"));
-        assertEquals("email", values2.get(0).get("tagAttachmentValue"));
+        assertEquals("type_pii", ((Map<String, Object>) values2.get(0).get("attributes")).get("tagAttachmentKey"));
+        assertEquals("email", ((Map<String, Object>) values2.get(0).get("attributes")).get("tagAttachmentValue"));
 
         Map<String, Object> tag3 = tagMap.get("test_tag_3");
         assertEquals("test.tag.3", tag3.get("sourceTagQualifiedName"));
         assertEquals("tag_guid_3", tag3.get("sourceTagGuid"));
         List<Map<String, Object>> values3 = (List<Map<String, Object>>) tag3.get("sourceTagValue");
-        assertEquals("sensitivity", values3.get(0).get("tagAttachmentKey"));
-        assertEquals("high", values3.get(0).get("tagAttachmentValue"));
+        assertEquals("sensitivity", ((Map<String, Object>) values3.get(0).get("attributes")).get("tagAttachmentKey"));
+        assertEquals("high", ((Map<String, Object>) values3.get(0).get("attributes")).get("tagAttachmentValue"));
 
         // 3. Remove one tag attachment from array
         tagAttachments = new ArrayList<>();
