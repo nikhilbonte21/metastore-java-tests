@@ -9,6 +9,11 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.*;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
+import org.elasticsearch.index.reindex.UpdateByQueryRequest;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -16,18 +21,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.tests.main.utils.AtlasElasticsearchDatabase.getHttpHosts;
+import static com.tests.main.utils.TestUtil.sleep;
+import static com.tests.main.utils.TestUtil.verifyESAttributes;
+import static com.tests.main.utils.TestUtil.verifyESDocumentNotPresent;
+import static com.tests.main.utils.TestUtil.verifyESHasNot;
+import static org.junit.Assert.assertTrue;
 
 public class ESUtil {
 
     private static final Logger       LOG = LoggerFactory.getLogger(ESUtil.class);
     public static RestClient          lowLevelClient;
     public static RestHighLevelClient highLevelClient;
-    public static String              index = "janusgraph_vertex_index";
+    public static String              JG_VERTEX_INDEX = "janusgraph_vertex_index";
     public static String              index_access_logs = "ranger-audit";
 
     private static RequestOptions requestOptions = RequestOptions.DEFAULT;
@@ -73,7 +84,7 @@ public class ESUtil {
         sourceBuilder.from(from);
         sourceBuilder.sort("__guid", SortOrder.ASC);
 
-        SearchRequest searchRequest = new SearchRequest(index);
+        SearchRequest searchRequest = new SearchRequest(JG_VERTEX_INDEX);
         searchRequest.source(sourceBuilder);
         LOG.info(" sourceBuilder {}", sourceBuilder);
         return runQuery(searchRequest);
@@ -86,7 +97,7 @@ public class ESUtil {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.query(queryBuilder);
 
-        SearchRequest searchRequest = new SearchRequest(index);
+        SearchRequest searchRequest = new SearchRequest(JG_VERTEX_INDEX);
         searchRequest.source(sourceBuilder);
 
         return runQuery(searchRequest);
@@ -99,7 +110,7 @@ public class ESUtil {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.query(queryBuilder);
 
-        SearchRequest searchRequest = new SearchRequest(index);
+        SearchRequest searchRequest = new SearchRequest(JG_VERTEX_INDEX);
         searchRequest.source(sourceBuilder);
 
         return runQuery(searchRequest);
@@ -181,8 +192,10 @@ public class ESUtil {
                         List<HttpHost> httpHosts = getHttpHosts();
 
                         RestClientBuilder restClientBuilder = RestClient.builder(httpHosts.toArray(new HttpHost[0]))
-                                .setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(900000)
-                                        .setSocketTimeout(900000));
+                                .setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder
+                                        .setConnectTimeout(90)
+                                        .setSocketTimeout(90)
+                                );
                         highLevelClient =
                                 new RestHighLevelClient(restClientBuilder);
                     } catch (Exception e) {
@@ -203,8 +216,8 @@ public class ESUtil {
 
                         RestClientBuilder builder = RestClient.builder(httpHosts.get(0));
                         builder.setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder
-                                .setConnectTimeout(900000)
-                                .setSocketTimeout(900000));
+                                .setConnectTimeout(90)
+                                .setSocketTimeout(90));
 
                         lowLevelClient = builder.build();
                     } catch (Exception e) {
@@ -225,5 +238,50 @@ public class ESUtil {
         } catch (IOException io) {
             LOG.info("Failed to close ES client/s");
         }
+    }
+
+    public static void deleteESDocByGuid(String... guids) throws Exception {
+        DeleteByQueryRequest deleteRequest = new DeleteByQueryRequest(JG_VERTEX_INDEX);
+        deleteRequest.setQuery(QueryBuilders.termsQuery("__guid", guids));
+        deleteRequest.setConflicts("proceed");
+        deleteRequest.setRefresh(true);
+
+        highLevelClient.deleteByQuery(deleteRequest, RequestOptions.DEFAULT);
+
+        sleep(1000);
+
+        verifyESDocumentNotPresent(guids);
+    }
+
+    public static void updateESDocByGuid(String guid, Map<String, Object> attrs) throws Exception {
+        UpdateByQueryRequest request = new UpdateByQueryRequest(JG_VERTEX_INDEX);
+
+        request.setConflicts("proceed");
+        request.setQuery(QueryBuilders.termQuery("__guid", guid));
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("new_status", "processed");
+        params.put("current_timestamp", System.currentTimeMillis());
+
+        String scriptCode = "for (entry in params.newProperties.entrySet()) { " +
+                "  ctx._source[entry.getKey()] = entry.getValue(); " +
+                "}";
+
+        // Pass your 'newProperties' map as a parameter to the script
+        Map<String, Object> scriptParams = Collections.singletonMap("newProperties", attrs);
+
+        Script script = new Script(
+                ScriptType.INLINE,
+                "painless",
+                scriptCode,
+                scriptParams
+        );
+        request.setScript(script);
+
+        highLevelClient.updateByQuery(request, RequestOptions.DEFAULT);
+
+        sleep(1000);
+
+        verifyESAttributes(guid, attrs);
     }
 }

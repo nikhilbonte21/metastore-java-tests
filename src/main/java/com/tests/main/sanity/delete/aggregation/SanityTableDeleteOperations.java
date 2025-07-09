@@ -37,6 +37,9 @@ import static org.junit.Assert.*;
  */
 public class SanityTableDeleteOperations implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityTableDeleteOperations.class);
+
+    private static long SLEEP = 1000;
+
     private static final String COLUMNS = "columns";
     private static final String TABLE = "table";
     private static final String DELETE_HANDLER_DEFAULT = "DEFAULT";
@@ -69,11 +72,11 @@ public class SanityTableDeleteOperations implements TestsMain {
         // Create a test table
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table_default_delete" + getRandomName());
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create columns and link them to the table
         List<String> columnGuids = createColumnsForTable(tableGuid, 2);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         table = getEntity(tableGuid);
@@ -87,7 +90,7 @@ public class SanityTableDeleteOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_DEFAULT, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify table is deleted but still retrievable
         table = getEntity(tableGuid);
@@ -113,11 +116,11 @@ public class SanityTableDeleteOperations implements TestsMain {
         // Create a test table
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table_soft_delete" + getRandomName());
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create columns and link them to the table
         List<String> columnGuids = createColumnsForTable(tableGuid, 2);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         table = getEntity(tableGuid);
@@ -131,7 +134,7 @@ public class SanityTableDeleteOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_SOFT, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify table is deleted but still retrievable
         table = getEntity(tableGuid);
@@ -158,11 +161,11 @@ public class SanityTableDeleteOperations implements TestsMain {
         // Create a test table
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table_hard_delete" + getRandomName());
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create columns and link them to the table
         List<String> columnGuids = createColumnsForTable(tableGuid, 2);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         table = getEntity(tableGuid);
@@ -176,7 +179,7 @@ public class SanityTableDeleteOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_HARD, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify table is not retrievable
         try {
@@ -209,11 +212,11 @@ public class SanityTableDeleteOperations implements TestsMain {
         // Create a test table
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table_purge_delete" + getRandomName());
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create columns and link them to the table
         List<String> columnGuids = createColumnsForTable(tableGuid, 2);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         table = getEntity(tableGuid);
@@ -227,7 +230,7 @@ public class SanityTableDeleteOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_PURGE, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify table is not retrievable
         try {

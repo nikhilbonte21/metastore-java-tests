@@ -44,6 +44,10 @@
         <level value="warn"/>
         <appender-ref ref="console"/>
     </logger>
+    <logger name="org.elasticsearch.client" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="console"/>
+    </logger>
 
  <!--   <Appenders>
         <Console name="Console" target="SYSTEM_OUT">

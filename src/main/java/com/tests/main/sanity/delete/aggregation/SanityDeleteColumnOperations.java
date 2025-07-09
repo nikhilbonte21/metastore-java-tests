@@ -18,6 +18,9 @@ import static org.junit.Assert.*;
 
 public class SanityDeleteColumnOperations implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityDeleteColumnOperations.class);
+
+    private static long SLEEP = 2000;
+
     private static final String COLUMNS = "columns";
     private static final String TABLE = "table";
     private static final String DELETE_HANDLER_DEFAULT = "DEFAULT";
@@ -50,12 +53,12 @@ public class SanityDeleteColumnOperations implements TestsMain {
         // Create a test table with column
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table_default_delete" + getRandomName());
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create column and link it to the table
         List<String> columnGuids = createColumnsForTable(tableGuid, 1);
         String columnGuid = columnGuids.get(0);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         table = getEntity(tableGuid);
@@ -69,7 +72,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_DEFAULT, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify column is deleted but still retrievable
         AtlasEntity column = getEntity(columnGuid);
@@ -94,12 +97,12 @@ public class SanityDeleteColumnOperations implements TestsMain {
         // Create a test table with column
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table_soft_delete" + getRandomName());
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create column and link it to the table
         List<String> columnGuids = createColumnsForTable(tableGuid, 1);
         String columnGuid = columnGuids.get(0);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         table = getEntity(tableGuid);
@@ -113,7 +116,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_SOFT, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify column is deleted but still retrievable
         AtlasEntity column = getEntity(columnGuid);
@@ -137,12 +140,12 @@ public class SanityDeleteColumnOperations implements TestsMain {
         // Create a test table with column
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table_hard_delete" + getRandomName());
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create column and link it to the table
         List<String> columnGuids = createColumnsForTable(tableGuid, 1);
         String columnGuid = columnGuids.get(0);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         table = getEntity(tableGuid);
@@ -156,7 +159,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_HARD, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify column is not retrievable
         try {
@@ -188,12 +191,12 @@ public class SanityDeleteColumnOperations implements TestsMain {
         // Create a test table with column
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table_purge_delete" + getRandomName());
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create column and link it to the table
         List<String> columnGuids = createColumnsForTable(tableGuid, 1);
         String columnGuid = columnGuids.get(0);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         table = getEntity(tableGuid);
@@ -207,7 +210,7 @@ public class SanityDeleteColumnOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_PURGE, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify column is not retrievable
         try {

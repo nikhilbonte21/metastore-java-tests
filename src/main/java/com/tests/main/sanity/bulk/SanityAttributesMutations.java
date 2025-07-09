@@ -30,8 +30,10 @@ import static com.tests.main.utils.TestUtil.verifyESAttributes;
 import static org.junit.Assert.*;
 
 
-public class SanityAttributesMutations implements TestsMain {
+    public class SanityAttributesMutations implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityAttributesMutations.class);
+
+    private static long SLEEP = 2000;
 
     public static String TYPE_PROJECT = "TableauProject";
     public static String TYPE_WORKOBOOK = "TableauWorkbook";
@@ -115,13 +117,13 @@ public class SanityAttributesMutations implements TestsMain {
         System.out.println(tableauWB_1_guid);
         System.out.println(tableauWB_2_guid);*/
 
-        sleep(2);
+        sleep(SLEEP);
         tableauProject = getEntity(projectGuid);
 
         // 1. Add one Workbook
         tableauProject.setRelationshipAttribute(REL_TYPE_WORKOBOOKS, getObjectIdsAsList(TYPE_WORKOBOOK, tableauWB_0_guid));
         createEntity(tableauProject);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -136,7 +138,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 2. Add two more Workbook
         tableauProject.setRelationshipAttribute(REL_TYPE_WORKOBOOKS, getObjectIdsAsList(TYPE_WORKOBOOK, tableauWB_0_guid, tableauWB_1_guid, tableauWB_2_guid));
         createEntity(tableauProject);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -162,7 +164,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 3. Remove one Workbook
         tableauProject.setRelationshipAttribute(REL_TYPE_WORKOBOOKS, getObjectIdsAsList(TYPE_WORKOBOOK, tableauWB_1_guid, tableauWB_2_guid));
         createEntity(tableauProject);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -189,7 +191,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 4. Add one + Remove one Workbook
         tableauProject.setRelationshipAttribute(REL_TYPE_WORKOBOOKS, getObjectIdsAsList(TYPE_WORKOBOOK, tableauWB_0_guid, tableauWB_1_guid));
         createEntity(tableauProject);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -212,7 +214,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 5. Remove all Workbooks
         tableauProject.setRelationshipAttribute(REL_TYPE_WORKOBOOKS, getObjectIdsAsList(TYPE_WORKOBOOK));
         createEntity(tableauProject);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -234,7 +236,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 6. Add all 3 Workbooks back
         tableauProject.setRelationshipAttribute(REL_TYPE_WORKOBOOKS, getObjectIdsAsList(TYPE_WORKOBOOK, tableauWB_0_guid, tableauWB_1_guid, tableauWB_2_guid));
         createEntity(tableauProject);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -289,14 +291,14 @@ public class SanityAttributesMutations implements TestsMain {
         System.out.println(tableauWB_1_guid);
         System.out.println(tableauWB_2_guid);*/
 
-        sleep(2);
+        sleep(SLEEP);
         tableauProject = getEntity(projectGuid);
         tableauWB_0 = getEntity(tableauWB_0_guid);
 
         // 1. Link one Workbooks to Project
         tableauWB_0.setRelationshipAttribute(REL_TYPE_PROJECT, new AtlasObjectId(projectGuid, TYPE_PROJECT));
         createEntity(tableauWB_0);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
         tableauWB_0 = getEntity(tableauWB_0_guid);
@@ -316,7 +318,7 @@ public class SanityAttributesMutations implements TestsMain {
         entitiesWithExtInfo.addEntity(tableauWB_1);
         entitiesWithExtInfo.addEntity(tableauWB_2);
         createEntitiesBulk(entitiesWithExtInfo);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -338,7 +340,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 3. Unlink one Workbook from Project
         tableauWB_0.setRelationshipAttribute(REL_TYPE_PROJECT, null);
         createEntity(tableauWB_0);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -366,7 +368,7 @@ public class SanityAttributesMutations implements TestsMain {
         entitiesWithExtInfo.addEntity(tableauWB_0);
         entitiesWithExtInfo.addEntity(tableauWB_2);
         createEntitiesBulk(entitiesWithExtInfo);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -395,7 +397,7 @@ public class SanityAttributesMutations implements TestsMain {
         entitiesWithExtInfo.addEntity(tableauWB_1);
         entitiesWithExtInfo.addEntity(tableauWB_2);
         createEntitiesBulk(entitiesWithExtInfo);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -422,7 +424,7 @@ public class SanityAttributesMutations implements TestsMain {
         entitiesWithExtInfo.addEntity(tableauWB_1);
         entitiesWithExtInfo.addEntity(tableauWB_2);
         createEntitiesBulk(entitiesWithExtInfo);
-        sleep(2);
+        sleep(SLEEP);
 
         tableauProject = getEntity(projectGuid);
 
@@ -474,13 +476,13 @@ public class SanityAttributesMutations implements TestsMain {
         System.out.println(sheet_1_guid);
         System.out.println(sheet_2_guid);*/
 
-        sleep(2);
+        sleep(SLEEP);
         calcField = getEntity(calcFieldGuid);
 
         // 1. Link one TableauWorksheet to TableauCalculatedField
         calcField.setRelationshipAttribute(REL_TYPE_WORKSHEETS, getObjectIdsAsList(TYPE_WORKOSHEET, sheet_0_guid));
         createEntity(calcField);
-        sleep(2);
+        sleep(SLEEP);
 
         calcField = getEntity(calcFieldGuid);
 
@@ -495,7 +497,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 2. Link two more TableauWorksheets to TableauCalculatedField
         calcField.setRelationshipAttribute(REL_TYPE_WORKSHEETS, getObjectIdsAsList(TYPE_WORKOSHEET, sheet_0_guid, sheet_1_guid, sheet_2_guid));
         createEntity(calcField);
-        sleep(2);
+        sleep(SLEEP);
 
         calcField = getEntity(calcFieldGuid);
 
@@ -522,7 +524,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 3. Unlink one TableauWorksheet from TableauCalculatedField
         calcField.setRelationshipAttribute(REL_TYPE_WORKSHEETS, getObjectIdsAsList(TYPE_WORKOBOOK, sheet_1_guid, sheet_2_guid));
         createEntity(calcField);
-        sleep(2);
+        sleep(SLEEP);
 
         calcField = getEntity(calcFieldGuid);
 
@@ -550,7 +552,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 4. Link one + Unlink one TableauWorksheet
         calcField.setRelationshipAttribute(REL_TYPE_WORKSHEETS, getObjectIdsAsList(TYPE_WORKOBOOK, sheet_0_guid, sheet_1_guid));
         createEntity(calcField);
-        sleep(2);
+        sleep(SLEEP);
 
         calcField = getEntity(calcFieldGuid);
 
@@ -579,7 +581,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 5. Unlink all TableauWorksheets from TableauCalculatedField
         calcField.setRelationshipAttribute(REL_TYPE_WORKSHEETS, getObjectIdsAsList(TYPE_WORKOBOOK));
         createEntity(calcField);
-        sleep(2);
+        sleep(SLEEP);
 
         calcField = getEntity(calcFieldGuid);
 
@@ -606,7 +608,7 @@ public class SanityAttributesMutations implements TestsMain {
         // 6. Link all 3 TableauWorksheets back to TableauCalculatedField
         calcField.setRelationshipAttribute(REL_TYPE_WORKSHEETS, getObjectIdsAsList(TYPE_WORKOBOOK, sheet_0_guid, sheet_1_guid, sheet_2_guid));
         createEntity(calcField);
-        sleep(2);
+        sleep(SLEEP);
 
         calcField = getEntity(calcFieldGuid);
 
@@ -655,14 +657,14 @@ public class SanityAttributesMutations implements TestsMain {
 
         //System.out.println(workbookGuid);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         // 1.Add one value in list
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, Collections.singleton(mapOf("key_1", "value_1")));
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -680,7 +682,7 @@ public class SanityAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, projectHierarchy);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -698,7 +700,7 @@ public class SanityAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, projectHierarchy);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -715,7 +717,7 @@ public class SanityAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, projectHierarchy);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -729,7 +731,7 @@ public class SanityAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, null);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -742,7 +744,7 @@ public class SanityAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, projectHierarchy);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -778,14 +780,14 @@ public class SanityAttributesMutations implements TestsMain {
 
         //System.out.println(tableGuid);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         // 1.Add one value in list
         table.setAttribute(ATTR_OWNER_USERS, listOf("value_1"));
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -804,7 +806,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, ownerUsers);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -823,7 +825,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, ownerUsers);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -841,7 +843,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, ownerUsers);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -856,7 +858,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, null);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -870,7 +872,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, ownerUsers);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -906,7 +908,7 @@ public class SanityAttributesMutations implements TestsMain {
 
         //System.out.println(tableGuid);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         // 1. Add one value in list
@@ -915,7 +917,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
 
         createEntity(table);
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_USER_RECORD_LIST));
@@ -952,7 +954,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
 
         createEntity(table);
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);
@@ -969,7 +971,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
 
         createEntity(table);
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);
@@ -984,7 +986,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
 
         createEntity(table);
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);
@@ -999,7 +1001,7 @@ public class SanityAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
 
         createEntity(table);
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);

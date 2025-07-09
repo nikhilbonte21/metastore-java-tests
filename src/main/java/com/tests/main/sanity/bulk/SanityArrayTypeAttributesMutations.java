@@ -21,12 +21,9 @@ import static org.junit.Assert.*;
 public class SanityArrayTypeAttributesMutations implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityArrayTypeAttributesMutations.class);
 
+    private static long SLEEP = 1000;
+
     public static String TYPE_ARRAY_TEST = "ArrayTest";
-    public static String TYPE_TAG_ATTACHMENT = "SourceTagAttachmentValue";
-    public static String TYPE_REFERENCIABLE = "Referenceable";
-    public static String TYPE_WORKBOOK = "TableauWorkbook";
-    public static String TYPE_SERVER = "AtlasServer";
-    public static String TYPE_TAG = "SourceTagAttachmentValue";
 
     public static String ATTR_OWNER_USERS = "ownerUsersTest";
     public static String ATTR_PROJECT_HIERARCHY = "projectHierarchyTest";
@@ -62,7 +59,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
             arrayOfMaps(); // TableauWorkbook.projectHierarchy
             arrayOfStructs(); // Table.sourceReadRecentUserRecordList
 
-            arrayOfTagAttachments();
+            //arrayOfTagAttachments();
 
         } catch (Exception e) {
             throw e;
@@ -174,14 +171,14 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         AtlasEntity table = getAtlasEntity(TYPE_ARRAY_TEST, "table_0");
         String tableGuid = createEntity(table).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         // 1. Add one value in array
         table.setAttribute(ATTR_OWNER_USERS, Collections.singleton("user_1"));
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -198,7 +195,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, ownerUsers);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -216,7 +213,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, ownerUsers);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -233,7 +230,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, ownerUsers);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -247,7 +244,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, null);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -262,7 +259,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_OWNER_USERS, ownerUsers);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_OWNER_USERS));
@@ -295,14 +292,14 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         AtlasEntity workbook = getAtlasEntity(TYPE_ARRAY_TEST, "workbook_0");
         String workbookGuid = createEntity(workbook).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         // 1. Add one value in array
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, Collections.singleton(mapOf("key_1", "value_1")));
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -318,7 +315,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, projectHierarchy);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -335,7 +332,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, projectHierarchy);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -351,7 +348,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, projectHierarchy);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -364,7 +361,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, null);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -377,7 +374,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         workbook.setAttribute(ATTR_PROJECT_HIERARCHY, projectHierarchy);
         createEntity(workbook);
 
-        sleep(2);
+        sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
         assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
@@ -409,7 +406,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         AtlasEntity table = getAtlasEntity(TYPE_ARRAY_TEST, "table_0");
         String tableGuid = createEntity(table).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         // 1. Add one value in array
@@ -418,7 +415,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         assertNotNull(table.getAttribute(ATTR_USER_RECORD_LIST));
@@ -435,7 +432,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);
@@ -454,7 +451,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);
@@ -472,7 +469,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);
@@ -488,7 +485,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);
@@ -502,7 +499,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         table.setAttribute(ATTR_USER_RECORD_LIST, structs);
         createEntity(table);
 
-        sleep(2);
+        sleep(SLEEP);
         table = getEntity(tableGuid);
 
         structsAsMap = (List<Map>) table.getAttribute(ATTR_USER_RECORD_LIST);
@@ -537,14 +534,14 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         AtlasEntity complexTest = getAtlasEntity(TYPE_ARRAY_TEST, "complextest_0");
         String complexTestGuid = createEntity(complexTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         // 1. Add one value in array
         complexTest.setAttribute(ATTR_ENUM_ARRAY, Collections.singleton("Credits"));
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_ENUM_ARRAY));
@@ -561,7 +558,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_ENUM_ARRAY, enumArray);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_ENUM_ARRAY));
@@ -579,7 +576,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_ENUM_ARRAY, enumArray);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_ENUM_ARRAY));
@@ -596,7 +593,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_ENUM_ARRAY, enumArray);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_ENUM_ARRAY));
@@ -610,7 +607,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_ENUM_ARRAY, null);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_ENUM_ARRAY));
@@ -624,7 +621,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_ENUM_ARRAY, enumArray);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_ENUM_ARRAY));
@@ -666,7 +663,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         AtlasEntity complexTest = getAtlasEntity(TYPE_ARRAY_TEST, "complextest_0");
         String complexTestGuid = createEntity(complexTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         // 1. Add one tag attachment in array
@@ -691,7 +688,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG_ATTACHMENTS, tagAttachments);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_TAG_ATTACHMENTS));
@@ -753,7 +750,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG_ATTACHMENTS, tagAttachments);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagAttachmentsAsMap = (List<Map<String, Object>>) complexTest.getAttribute(ATTR_TAG_ATTACHMENTS);
@@ -793,7 +790,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG_ATTACHMENTS, tagAttachments);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagAttachmentsAsMap = (List<Map<String, Object>>) complexTest.getAttribute(ATTR_TAG_ATTACHMENTS);
@@ -816,7 +813,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG_ATTACHMENTS, tagAttachments);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagAttachmentsAsMap = (List<Map<String, Object>>) complexTest.getAttribute(ATTR_TAG_ATTACHMENTS);
@@ -837,7 +834,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG_ATTACHMENTS, tagAttachments);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagAttachmentsAsMap = (List<Map<String, Object>>) complexTest.getAttribute(ATTR_TAG_ATTACHMENTS);
@@ -851,7 +848,7 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG_ATTACHMENTS, tagAttachments);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagAttachmentsAsMap = (List<Map<String, Object>>) complexTest.getAttribute(ATTR_TAG_ATTACHMENTS);

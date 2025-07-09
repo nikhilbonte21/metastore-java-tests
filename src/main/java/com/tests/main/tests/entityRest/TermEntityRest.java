@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.*;
@@ -64,11 +66,11 @@ public class TermEntityRest implements TestsMain {
         assertEquals(getQualifiedName(term_1), getNanoid(getQualifiedName(term_1)) + "@" + getQualifiedName(glossary_1));
         assertEquals(getQualifiedName(term_2), getNanoid(getQualifiedName(term_2)) + "@" + getQualifiedName(glossary_1));
 
-        AtlasGlossary glossary_0_f = getGlossary(glossary_0.getGuid());
-        AtlasGlossary glossary_1_f = getGlossary(glossary_1.getGuid());
-        assertEquals(glossary_0_f.getTerms().size(), 1);
-        assertEquals(glossary_1_f.getTerms().size(), 2);
-        assertEquals(glossary_1_f.getTerms().size(), 2);
+        AtlasEntity glossary_0_f = getEntity(glossary_0.getGuid());
+        AtlasEntity glossary_1_f = getEntity(glossary_1.getGuid());
+        assertEquals(( (List<HashMap>) glossary_0_f.getRelationshipAttribute(REL_TERMS)).size(), 1);
+        assertEquals(( (List<HashMap>) glossary_1_f.getRelationshipAttribute(REL_TERMS)).size(), 2);
+        assertEquals(( (List<HashMap>) glossary_1_f.getRelationshipAttribute(REL_TERMS)).size(), 2);
     }
 
     private static void testUpdateTerm() throws Exception {
@@ -87,7 +89,7 @@ public class TermEntityRest implements TestsMain {
         termToUpdate.setLongDescription("update desc");
         updateTerm(term_0.getGuid(), termToUpdate);
 
-        assertEquals(getGlossary(glossary_0.getGuid()).getTerms().size(), 1);
+        assertEquals(( (List<HashMap>) getEntity(glossary_0.getGuid()).getRelationshipAttribute(REL_TERMS)).size(), 1);
         assertEquals(getQualifiedName(term_0), getNanoid(getQualifiedName(term_0)) + "@" + getQualifiedName(glossary_0));
     }
 

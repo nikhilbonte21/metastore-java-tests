@@ -19,6 +19,8 @@ import static org.junit.Assert.*;
 public class SanityMapTypeAttributesMutations implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityMapTypeAttributesMutations.class);
 
+    private static long SLEEP = 500;
+
     public static String TYPE_MAP_TEST = "MapTest";
     public static String ATTR_STRING_MAP = "stringMapTest";
     public static String ATTR_LONG_MAP = "longMapTest";
@@ -119,7 +121,11 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         typesDef.setEntityDefs(Collections.singletonList(mapTestDef));
         
         // Create type in Atlas
-        TestUtil.createTypeDefs(typesDef);
+        try {
+            TestUtil.createTypeDefs(typesDef);
+        } catch (Exception e) {
+            LOG.warn(e.getMessage());
+        }
     }
 
     @Test
@@ -141,14 +147,14 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         AtlasEntity mapTest = getAtlasEntity(TYPE_MAP_TEST, "maptest_0");
         String mapTestGuid = createEntity(mapTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         // 1. Add one key-value pair
         mapTest.setAttribute(ATTR_STRING_MAP, mapOf("key_1", "value_1"));
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_STRING_MAP));
@@ -164,7 +170,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_STRING_MAP, stringMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_STRING_MAP));
@@ -181,7 +187,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_STRING_MAP, stringMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_STRING_MAP));
@@ -197,7 +203,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_STRING_MAP, stringMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_STRING_MAP));
@@ -210,7 +216,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_STRING_MAP, null);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNull(mapTest.getAttribute(ATTR_STRING_MAP));
@@ -223,7 +229,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_STRING_MAP, stringMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_STRING_MAP));
@@ -255,7 +261,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         AtlasEntity mapTest = getAtlasEntity(TYPE_MAP_TEST, "maptest_0");
         String mapTestGuid = createEntity(mapTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         // 1. Add one key-value pair
@@ -264,7 +270,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_LONG_MAP, longMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_LONG_MAP));
@@ -280,7 +286,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_LONG_MAP, longMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_LONG_MAP));
@@ -297,7 +303,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_LONG_MAP, longMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_LONG_MAP));
@@ -313,7 +319,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_LONG_MAP, longMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_LONG_MAP));
@@ -326,7 +332,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_LONG_MAP, null);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNull(mapTest.getAttribute(ATTR_LONG_MAP));
@@ -339,7 +345,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_LONG_MAP, longMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_LONG_MAP));
@@ -371,7 +377,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         AtlasEntity mapTest = getAtlasEntity(TYPE_MAP_TEST, "maptest_0");
         String mapTestGuid = createEntity(mapTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         // 1. Add one key-value pair
@@ -380,7 +386,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_INT_MAP, intMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_INT_MAP));
@@ -396,7 +402,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_INT_MAP, intMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_INT_MAP));
@@ -413,7 +419,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_INT_MAP, intMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_INT_MAP));
@@ -429,7 +435,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_INT_MAP, intMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_INT_MAP));
@@ -442,7 +448,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_INT_MAP, null);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNull(mapTest.getAttribute(ATTR_INT_MAP));
@@ -455,7 +461,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_INT_MAP, intMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_INT_MAP));
@@ -487,7 +493,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         AtlasEntity mapTest = getAtlasEntity(TYPE_MAP_TEST, "maptest_0");
         String mapTestGuid = createEntity(mapTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         // 1. Add one key-value pair
@@ -496,7 +502,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_DOUBLE_MAP, doubleMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_DOUBLE_MAP));
@@ -512,7 +518,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_DOUBLE_MAP, doubleMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_DOUBLE_MAP));
@@ -529,7 +535,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_DOUBLE_MAP, doubleMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_DOUBLE_MAP));
@@ -545,7 +551,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_DOUBLE_MAP, doubleMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_DOUBLE_MAP));
@@ -558,7 +564,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_DOUBLE_MAP, null);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNull(mapTest.getAttribute(ATTR_DOUBLE_MAP));
@@ -571,7 +577,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_DOUBLE_MAP, doubleMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_DOUBLE_MAP));
@@ -603,7 +609,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         AtlasEntity mapTest = getAtlasEntity(TYPE_MAP_TEST, "maptest_0");
         String mapTestGuid = createEntity(mapTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         // 1. Add one key-value pair
@@ -612,7 +618,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_FLOAT_MAP, floatMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_FLOAT_MAP));
@@ -628,7 +634,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_FLOAT_MAP, floatMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_FLOAT_MAP));
@@ -645,7 +651,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_FLOAT_MAP, floatMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_FLOAT_MAP));
@@ -661,7 +667,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_FLOAT_MAP, floatMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_FLOAT_MAP));
@@ -674,7 +680,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_FLOAT_MAP, null);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNull(mapTest.getAttribute(ATTR_FLOAT_MAP));
@@ -687,7 +693,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         mapTest.setAttribute(ATTR_FLOAT_MAP, floatMap);
         createEntity(mapTest);
 
-        sleep(2);
+        sleep(SLEEP);
         mapTest = getEntity(mapTestGuid);
 
         assertNotNull(mapTest.getAttribute(ATTR_FLOAT_MAP));

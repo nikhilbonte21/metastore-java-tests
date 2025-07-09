@@ -4,7 +4,7 @@ import com.tests.main.CustomException;
 
 import com.tests.main.tests.glossary.tests.TestsMain;
 import org.apache.atlas.model.discovery.AtlasSearchResult;
-import org.apache.atlas.model.discovery.IndexSearchParams;
+import com.tests.main.IndexSearchParams;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasEntityHeader;
 import org.apache.atlas.model.instance.AtlasObjectId;
@@ -345,7 +345,7 @@ public class CustomRelationships implements TestsMain {
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
         sleep(2);
 
-        //assertWithIndexSearch(table0Guid, table1Guid);
+        assertWithIndexSearch(table0Guid, table1Guid);
         assertWithGET(table0Guid, table1Guid);
 
 

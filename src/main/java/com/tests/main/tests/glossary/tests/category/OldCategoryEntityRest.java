@@ -5,8 +5,12 @@ import org.apache.atlas.AtlasErrorCode;
 
 import org.apache.atlas.model.glossary.AtlasGlossary;
 import org.apache.atlas.model.glossary.AtlasGlossaryCategory;
+import org.apache.atlas.model.instance.AtlasEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
 
 import static com.tests.main.utils.TestUtil.*;
 import static org.junit.Assert.*;
@@ -47,8 +51,8 @@ public class OldCategoryEntityRest {
     */
     private void changeAnchor() throws Exception {
         LOG.info(">> changeAnchor");
-        AtlasGlossary glossary_0 = createGlossary(getGlossaryModel(getRandomName()));
-        AtlasGlossary glossary_1 = createGlossary(getGlossaryModel(getRandomName()));
+        AtlasEntity glossary_0 = getAtlasEntity(TYPE_GLOSSARY, "test_glossary_0");
+        AtlasEntity glossary_1 = getAtlasEntity(TYPE_GLOSSARY, "test_glossary_1");
 
         AtlasGlossaryCategory category_0 = createCategory(getCategoryModel(glossary_0.getGuid()));
         AtlasGlossaryCategory category_1 = createCategory(getCategoryModelWithParent(glossary_0.getGuid(), getCategoryParentModel(category_0)));
@@ -57,14 +61,16 @@ public class OldCategoryEntityRest {
         AtlasGlossaryCategory category_3 = createCategory(getCategoryModelWithParent(glossary_1.getGuid(), getCategoryParentModel(category_2)));
         AtlasGlossaryCategory category_4 = createCategory(getCategoryModelWithParent(glossary_1.getGuid(), getCategoryParentModel(category_3)));
 
+        String glossaryQN_0 = (String) glossary_0.getAttribute(QUALIFIED_NAME);
+
         String category_0_nid = getNanoid(category_0.getQualifiedName());
         String category_1_nid = getNanoid(category_1.getQualifiedName());
         String category_2_nid = getNanoid(category_2.getQualifiedName());
         String category_3_nid = getNanoid(category_3.getQualifiedName());
         String category_4_nid = getNanoid(category_4.getQualifiedName());
 
-        assertEquals(category_3.getQualifiedName(), category_2_nid + "." + category_3_nid + "@" + glossary_1.getQualifiedName());
-        assertEquals(category_4.getQualifiedName(), category_2_nid + "." + category_3_nid + "." + category_4_nid +  "@" + glossary_1.getQualifiedName());
+        assertEquals(category_3.getQualifiedName(), category_2_nid + "." + category_3_nid + "@" + glossaryQN_0);
+        assertEquals(category_4.getQualifiedName(), category_2_nid + "." + category_3_nid + "." + category_4_nid +  "@" + glossaryQN_0);
 
         //change category_3's anchor from glossary_1 to glossary_0
         AtlasGlossaryCategory category = getCategory(category_3.getGuid());
@@ -72,11 +78,11 @@ public class OldCategoryEntityRest {
         category.setAnchor(getGlossaryHeader(glossary_0.getGuid()));
         updateCategory(category.getGuid(), category);
 
-        assertEquals(getCategory(category_3.getGuid()).getQualifiedName(), category_3_nid + "@" + glossary_0.getQualifiedName());
-        assertEquals(getCategory(category_4.getGuid()).getQualifiedName(), category_3_nid + "." + category_4_nid +  "@" + glossary_0.getQualifiedName());
+        assertEquals(getCategory(category_3.getGuid()).getQualifiedName(), category_3_nid + "@" + glossaryQN_0);
+        assertEquals(getCategory(category_4.getGuid()).getQualifiedName(), category_3_nid + "." + category_4_nid +  "@" + glossaryQN_0);
 
-        assertEquals(getCategory(category_0.getGuid()).getQualifiedName(), category_0_nid + "@" + glossary_0.getQualifiedName());
-        assertEquals(getCategory(category_1.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid +  "@" + glossary_0.getQualifiedName());
+        assertEquals(getCategory(category_0.getGuid()).getQualifiedName(), category_0_nid + "@" + glossaryQN_0);
+        assertEquals(getCategory(category_1.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid +  "@" + glossaryQN_0);
 
 
         LOG.info(">> changeAnchor");
@@ -95,8 +101,8 @@ public class OldCategoryEntityRest {
      */
     private void changeParentInAnotherAnchor() throws Exception {
         LOG.info(">> changeParentInAnotherAnchor");
-        AtlasGlossary glossary_0 = createGlossary(getGlossaryModel(getRandomName()));
-        AtlasGlossary glossary_1 = createGlossary(getGlossaryModel(getRandomName()));
+        AtlasEntity glossary_0 =getAtlasEntity(TYPE_GLOSSARY, "test_glossary_0");
+        AtlasEntity glossary_1 =getAtlasEntity(TYPE_GLOSSARY, "test_glossary_1");
 
         AtlasGlossaryCategory category_0 = createCategory(getCategoryModel(glossary_0.getGuid()));
         AtlasGlossaryCategory category_1 = createCategory(getCategoryModelWithParent(glossary_0.getGuid(), getCategoryParentModel(category_0)));
@@ -108,6 +114,8 @@ public class OldCategoryEntityRest {
         AtlasGlossaryCategory category_5 = createCategory(getCategoryModelWithParent(glossary_1.getGuid(), getCategoryParentModel(category_4)));
         AtlasGlossaryCategory category_6 = createCategory(getCategoryModelWithParent(glossary_1.getGuid(), getCategoryParentModel(category_5)));
 
+        String glossaryQN_0 = (String) glossary_0.getAttribute(QUALIFIED_NAME);
+
         String category_0_nid = getNanoid(category_0.getQualifiedName());
         String category_1_nid = getNanoid(category_1.getQualifiedName());
         String category_2_nid = getNanoid(category_2.getQualifiedName());
@@ -117,11 +125,11 @@ public class OldCategoryEntityRest {
         String category_6_nid = getNanoid(category_6.getQualifiedName());
         String category_1_1_nid = getNanoid(category_1_1.getQualifiedName());
 
-        assertEquals(category_1_1.getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_1_1_nid + "@" + glossary_0.getQualifiedName());
-        assertEquals(category_3.getQualifiedName(), category_2_nid + "." + category_3_nid + "@" + glossary_1.getQualifiedName());
-        assertEquals(category_4.getQualifiedName(), category_2_nid + "." + category_3_nid + "."+ category_4_nid + "@" + glossary_1.getQualifiedName());
-        assertEquals(category_5.getQualifiedName(), category_2_nid + "." + category_3_nid + "."+ category_4_nid + "." + category_5_nid + "@" + glossary_1.getQualifiedName());
-        assertEquals(category_6.getQualifiedName(), category_2_nid + "." + category_3_nid + "."+ category_4_nid + "." + category_5_nid + "." + category_6_nid + "@" + glossary_1.getQualifiedName());
+        assertEquals(category_1_1.getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_1_1_nid + "@" + glossaryQN_0);
+        assertEquals(category_3.getQualifiedName(), category_2_nid + "." + category_3_nid + "@" + glossaryQN_0);
+        assertEquals(category_4.getQualifiedName(), category_2_nid + "." + category_3_nid + "."+ category_4_nid + "@" + glossaryQN_0);
+        assertEquals(category_5.getQualifiedName(), category_2_nid + "." + category_3_nid + "."+ category_4_nid + "." + category_5_nid + "@" + glossaryQN_0);
+        assertEquals(category_6.getQualifiedName(), category_2_nid + "." + category_3_nid + "."+ category_4_nid + "." + category_5_nid + "." + category_6_nid + "@" + glossaryQN_0);
 
 /*        LOG.info("glossary_0: nanoId {}, guid {}, name {}", getNanoid(glossary_0.getQualifiedName()), glossary_0.getGuid(), glossary_0.getName());
         LOG.info("glossary_1: nanoId {}, guid {}, name {}", getNanoid(glossary_1.getQualifiedName()), glossary_1.getGuid(), glossary_1.getName());
@@ -148,21 +156,21 @@ public class OldCategoryEntityRest {
         category.setParentCategory(getCategoryParentModel(category_1));
         updateCategory(category.getGuid(), category);
 
-        assertEquals(getGlossary(glossary_0.getGuid()).getCategories().size(), 7);
-        assertEquals(getGlossary(glossary_1.getGuid()).getCategories().size(), 1);
+        assertEquals(( (List<HashMap>) getEntity(glossary_0.getGuid()).getRelationshipAttribute(REL_CATEGORIES)).size(), 7);
+        assertEquals(( (List<HashMap>) getEntity(glossary_1.getGuid()).getRelationshipAttribute(REL_CATEGORIES)).size(), 1);
 
-        assertEquals(getCategory(category_1_1.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_1_1_nid + "@" + glossary_0.getQualifiedName());
-        assertEquals(getCategory(category_0.getGuid()).getQualifiedName(), category_0_nid + "@" + glossary_0.getQualifiedName());
-        assertEquals(getCategory(category_1.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid +  "@" + glossary_0.getQualifiedName());
+        assertEquals(getCategory(category_1_1.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_1_1_nid + "@" + glossaryQN_0);
+        assertEquals(getCategory(category_0.getGuid()).getQualifiedName(), category_0_nid + "@" + glossaryQN_0);
+        assertEquals(getCategory(category_1.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid +  "@" + glossaryQN_0);
 
 
-        assertEquals(getCategory(category_2.getGuid()).getQualifiedName(), category_2_nid + "@" + glossary_1.getQualifiedName());
+        assertEquals(getCategory(category_2.getGuid()).getQualifiedName(), category_2_nid + "@" + glossaryQN_0);
 
-        assertEquals(getCategory(category_3.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "@" + glossary_0.getQualifiedName());
+        assertEquals(getCategory(category_3.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "@" + glossaryQN_0);
 
-        assertEquals(getCategory(category_4.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "." + category_4_nid +  "@" + glossary_0.getQualifiedName());
-        assertEquals(getCategory(category_5.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "." + category_4_nid + "." + category_5_nid + "@" + glossary_0.getQualifiedName());
-        assertEquals(getCategory(category_6.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "." + category_4_nid + "." + category_5_nid + "." + category_6_nid + "@" + glossary_0.getQualifiedName());
+        assertEquals(getCategory(category_4.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "." + category_4_nid +  "@" + glossaryQN_0);
+        assertEquals(getCategory(category_5.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "." + category_4_nid + "." + category_5_nid + "@" + glossaryQN_0);
+        assertEquals(getCategory(category_6.getGuid()).getQualifiedName(), category_0_nid + "." + category_1_nid + "." + category_3_nid + "." + category_4_nid + "." + category_5_nid + "." + category_6_nid + "@" + glossaryQN_0);
 
 
         LOG.info("<< changeParentInAnotherAnchor");

@@ -3,7 +3,7 @@ package com.tests.main.tests;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
-import org.apache.atlas.model.discovery.IndexSearchParams;
+import com.tests.main.IndexSearchParams;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

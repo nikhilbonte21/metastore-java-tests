@@ -12,7 +12,6 @@
         <keycloak-admin-client.version>15.1.0</keycloak-admin-client.version>
         <okhttp3.version>4.10.0</okhttp3.version>
         <retrofit.version>2.9.0</retrofit.version>
-        <!--<atlas-version>2.2.0</atlas-version>-->
         <atlas-version>3.0.0-SNAPSHOT</atlas-version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
@@ -58,27 +57,6 @@
             <artifactId>logging-interceptor</artifactId>
             <version>${okhttp3.version}</version>
         </dependency>
-
-<!--        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-client-common</artifactId>
-            <version>${atlas-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-common</artifactId>
-            <version>${atlas-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-intg</artifactId>
-            <version>${atlas-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-client-v2</artifactId>
-            <version>${atlas-version}</version>
-        </dependency>-->
 
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -145,7 +123,8 @@
             <version>4.2.0</version>
         </dependency>
 
-    </dependencies>
+
+    </dependencies><build><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><source>8</source><target>8</target></configuration></plugin></plugins></build>
 
 
 </project>

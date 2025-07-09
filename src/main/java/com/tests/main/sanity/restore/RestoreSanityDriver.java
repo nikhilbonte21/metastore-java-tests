@@ -1,11 +1,8 @@
-package com.tests.main.sanity.delete;
+package com.tests.main.sanity.restore;
 
-import com.tests.main.sanity.delete.aggregation.SanityDeleteColumnOperations;
-import com.tests.main.sanity.delete.aggregation.SanityTableDeleteOperations;
-import com.tests.main.sanity.delete.association.SanityAssociationDeleteOperations;
-import com.tests.main.sanity.delete.association.SanityAssociationDeleteOperationsInverse;
-import com.tests.main.sanity.delete.composition.SanityCategoryCompositionDeleteOperations;
-import com.tests.main.sanity.delete.composition.SanityCompositionDeleteOperations;
+import com.tests.main.sanity.restore.aggregation.RestoreAssetAggregation;
+import com.tests.main.sanity.restore.association.RestoreAssetAssociation;
+import com.tests.main.sanity.restore.conposition.RestoreAssetComposition;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
 import org.slf4j.Logger;
@@ -22,8 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 import static com.tests.main.utils.TestUtil.cleanUpAll;
 
-public class DeleteSanityDriver {
-    private static final Logger LOG = LoggerFactory.getLogger(DeleteSanityDriver.class);
+public class RestoreSanityDriver {
+    private static final Logger LOG = LoggerFactory.getLogger(RestoreSanityDriver.class);
     private static final int PARALLEL_THREADS = 1;
     private static final int TEST_TIMEOUT_MINUTES = 30;
     private static final int SHUTDOWN_TIMEOUT_MINUTES = 5;
@@ -32,12 +29,10 @@ public class DeleteSanityDriver {
         try {
             // Create a queue of all test classes
             Queue<Class<? extends TestsMain>> testQueue = new LinkedList<>();
-            testQueue.add(SanityDeleteColumnOperations.class);
-            testQueue.add(SanityTableDeleteOperations.class);
-            testQueue.add(SanityAssociationDeleteOperations.class);
-            testQueue.add(SanityAssociationDeleteOperationsInverse.class);
-            testQueue.add(SanityCategoryCompositionDeleteOperations.class);
-            testQueue.add(SanityCompositionDeleteOperations.class);
+            testQueue.add(RestoreAssetNoRelation.class);
+            testQueue.add(RestoreAssetAggregation.class);
+            testQueue.add(RestoreAssetAssociation.class);
+            testQueue.add(RestoreAssetComposition.class);
 
             // Create a thread pool for parallel execution
             ExecutorService executor = Executors.newFixedThreadPool(PARALLEL_THREADS);

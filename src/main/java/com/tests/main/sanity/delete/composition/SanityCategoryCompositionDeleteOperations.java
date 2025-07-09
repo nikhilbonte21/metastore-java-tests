@@ -3,7 +3,6 @@ package com.tests.main.sanity.delete.composition;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
-import org.apache.atlas.model.instance.AtlasEntityHeader;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,29 +11,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.tests.main.sanity.delete.composition.SanityCompositionDeleteOperations.createChildrenCategories;
-import static com.tests.main.utils.TestUtil.ANCHOR;
+
+import static com.tests.main.utils.Constants.*;
 import static com.tests.main.utils.TestUtil.REL_CATEGORIES;
 import static com.tests.main.utils.TestUtil.REL_TERMS;
-import static com.tests.main.utils.TestUtil.TYPE_CATEGORY;
 import static com.tests.main.utils.TestUtil.TYPE_GLOSSARY;
-import static com.tests.main.utils.TestUtil.TYPE_TERM;
 import static com.tests.main.utils.TestUtil.cleanUpAll;
-import static com.tests.main.utils.TestUtil.createEntitiesBulk;
+import static com.tests.main.utils.TestUtil.createChildrenCategories;
 import static com.tests.main.utils.TestUtil.createEntity;
 import static com.tests.main.utils.TestUtil.deleteEntity;
-import static com.tests.main.utils.TestUtil.deleteEntityDefault;
-import static com.tests.main.utils.TestUtil.deleteEntityHard;
 import static com.tests.main.utils.TestUtil.getAtlasEntity;
 import static com.tests.main.utils.TestUtil.getEntity;
-import static com.tests.main.utils.TestUtil.getObjectId;
 import static com.tests.main.utils.TestUtil.getRandomName;
 import static com.tests.main.utils.TestUtil.mapOf;
 import static com.tests.main.utils.TestUtil.sleep;
 import static com.tests.main.utils.TestUtil.verifyESAttributes;
 import static com.tests.main.utils.TestUtil.verifyESDocumentNotPresent;
 import static org.apache.atlas.model.instance.AtlasEntity.Status.ACTIVE;
-import static org.apache.atlas.model.instance.AtlasEntity.Status.DELETED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -56,10 +49,8 @@ import static org.junit.Assert.fail;
  */
 public class SanityCategoryCompositionDeleteOperations implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityCategoryCompositionDeleteOperations.class);
-    private static final String DELETE_HANDLER_DEFAULT = "DEFAULT";
-    private static final String DELETE_HANDLER_SOFT = "SOFT";
-    private static final String DELETE_HANDLER_HARD = "HARD";
-    private static final String DELETE_HANDLER_PURGE = "PURGE";
+
+    private static long SLEEP = 1000;
 
     private static int NUM_CHILDREN = 2;
 
@@ -89,11 +80,11 @@ public class SanityCategoryCompositionDeleteOperations implements TestsMain {
         // Create a glossary (parent)
         AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, "test_glossary_category_delete" + getRandomName());
         String glossaryGuid = createEntity(glossary).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create categories with terms
         List<String> categoryGuids = createChildrenCategories(glossaryGuid, NUM_CHILDREN);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         glossary = getEntity(glossaryGuid);
@@ -133,7 +124,7 @@ public class SanityCategoryCompositionDeleteOperations implements TestsMain {
             assertEquals(1, response.getDeletedEntities().stream().filter(x -> DELETE_HANDLER_HARD.equals(x.getDeleteHandler().toUpperCase())).count());
         }
 
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify category is not retrievable (HARD deleted)
         try {

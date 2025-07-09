@@ -1,17 +1,20 @@
 package com.tests.main;
 
+import com.tests.main.utils.ESUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.*;
 
+import static com.tests.main.utils.TestUtil.cleanUpAll;
+
 public class TestRunner {
     private static final Logger LOG = LoggerFactory.getLogger(TestRunner.class);
 
-    private static final int THREAD_COUNT = 4;
+    private static final int THREAD_COUNT = 2;
 
-    public static void runTests(Class<?> testClass) {
+    public static void runTests(Class<?> testClass) throws Exception {
         long start = System.currentTimeMillis();
 
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
@@ -34,6 +37,7 @@ public class TestRunner {
                             Object instance = testClass.getDeclaredConstructor().newInstance();
                             method.setAccessible(true);
                             System.out.println("Executing: " + method.getName() + " on " + Thread.currentThread().getName());
+                            Thread.currentThread().setName(method.getName());
                             method.invoke(instance);
                         } catch (Exception e) {
                             System.err.println("Test failed: " + method.getName());
@@ -46,11 +50,13 @@ public class TestRunner {
 
         executor.shutdown();
         try {
-            executor.awaitTermination(1, TimeUnit.MINUTES);
+            executor.awaitTermination(30, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             LOG.info("Completed running {} tests, took {} seconds", testClass, (System.currentTimeMillis() - start) / 1000);
+            cleanUpAll();
+            ESUtil.close();
         }
     }
 }

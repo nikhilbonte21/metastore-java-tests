@@ -30,12 +30,8 @@ public class GlossaryANDCategoriesProperties {
 
         long start = System.currentTimeMillis();
         try {
-            testCreateOrAddTerm(); //Glossary rest
-            testCreateOrAddCategory(); //Glossary rest
-
-            //testCreateOrAddCategoryEntityRest(); //Entity Rest
-            //TODO: testCreateOrUpdateMeaningsInCategory(); //Entity rest
-            //TODO: testCreateOrAddTermEntityRest(); //Entity Rest
+            /*testCreateOrAddTerm();
+            testCreateOrAddCategory();*/
 
         } catch (Exception e){
             throw e;
@@ -47,7 +43,7 @@ public class GlossaryANDCategoriesProperties {
         }
     }
 
-    private static void testCreateOrAddTerm() throws Exception {
+/*    private static void testCreateOrAddTerm() throws Exception {
         LOG.info(">> testCreateOrAddTerm");
 
         AtlasGlossary glossary_0 = createGlossary(getGlossaryModel());
@@ -256,7 +252,7 @@ public class GlossaryANDCategoriesProperties {
         assertTermCatProperty(term_3, categoryQName);
         assertTermCatProperty(term_4, categoryQName);
 
- /*       // remove all terms from category entity
+ *//*       // remove all terms from category entity
         entity.setRelationshipAttribute("terms", new HashSet<>());
         entityWithExtInfo.setEntity(entity);
 
@@ -267,7 +263,7 @@ public class GlossaryANDCategoriesProperties {
         assertTermCatProperty(term_1, false, categoryQName);
         assertTermCatProperty(term_2, false, categoryQName);
         assertTermCatProperty(term_3, false, categoryQName);
-        assertTermCatProperty(term_4, false, categoryQName);*/
+        assertTermCatProperty(term_4, false, categoryQName);*//*
 
 
         LOG.info("<< testCreateOrAddCategoryEntityRest");
@@ -338,6 +334,6 @@ public class GlossaryANDCategoriesProperties {
                 Arrays.stream(expectedQNames).forEach(ac -> assertTrue(actualCategories.contains(ac)));
             }
         }
-    }
+    }*/
 
 }

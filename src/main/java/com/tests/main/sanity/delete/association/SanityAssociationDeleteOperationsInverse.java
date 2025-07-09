@@ -34,6 +34,9 @@ import static org.junit.Assert.*;
  */
 public class SanityAssociationDeleteOperationsInverse implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityAssociationDeleteOperationsInverse.class);
+
+    private static long SLEEP = 1000;
+
     private static final String DIMENSIONS = "dimensions";
     private static final String FACTS = "facts";
     private static final String DELETE_HANDLER_DEFAULT = "DEFAULT";
@@ -66,11 +69,11 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Create a fact table
         AtlasEntity factTable = getAtlasEntity(TYPE_TABLE, "test_fact_table_default_delete_inverse" + getRandomName());
         String factTableGuid = createEntity(factTable).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create dimension table and link it to the fact table
         String dimensionTableGuid = createDimensionTableForFact(factTableGuid);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         factTable = getEntity(factTableGuid);
@@ -84,7 +87,7 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_DEFAULT, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify dimension table is deleted but still retrievable
         AtlasEntity dimensionTable = getEntity(dimensionTableGuid);
@@ -115,11 +118,11 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Create a fact table
         AtlasEntity factTable = getAtlasEntity(TYPE_TABLE, "test_fact_table_soft_delete_inverse" + getRandomName());
         String factTableGuid = createEntity(factTable).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create dimension table and link it to the fact table
         String dimensionTableGuid = createDimensionTableForFact(factTableGuid);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         factTable = getEntity(factTableGuid);
@@ -133,14 +136,14 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_SOFT, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify dimension table is deleted but still retrievable
         AtlasEntity dimensionTable = getEntity(dimensionTableGuid);
         assertEquals(DELETED, dimensionTable.getStatus());
         verifyESAttributes(dimensionTableGuid, mapOf(ATTR_STATE, DELETED.name()));
 
-        // Verify fact table is still active and relationship remains ACTIVE
+        // Verify fact table is still active but relationship remains DELETED
         factTable = getEntity(factTableGuid);
         assertEquals(ACTIVE, factTable.getStatus());
         verifyESAttributes(factTableGuid, mapOf(ATTR_STATE, ACTIVE.name()));
@@ -149,7 +152,7 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         assertEquals("Fact table should maintain relationship after soft delete", 1, dimensionsList.size());
         assertEquals("Relationship should remain ACTIVE after soft delete", "DELETED", dimensionsList.get(0).get("relationshipStatus"));
 
-        // Verify dimension table's relationship is also ACTIVE
+        // Verify dimension table's relationship is DELETED
         List<Map<String, Object>> factsList = (List<Map<String, Object>>) dimensionTable.getRelationshipAttribute(FACTS);
         assertNotNull("Dimension table should have facts list for association", factsList);
         assertEquals("Dimension table should maintain relationship after soft delete", 1, factsList.size());
@@ -164,11 +167,11 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Create a fact table
         AtlasEntity factTable = getAtlasEntity(TYPE_TABLE, "test_fact_table_hard_delete_inverse" + getRandomName());
         String factTableGuid = createEntity(factTable).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create dimension table and link it to the fact table
         String dimensionTableGuid = createDimensionTableForFact(factTableGuid);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         factTable = getEntity(factTableGuid);
@@ -182,7 +185,7 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_HARD, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify dimension table is not retrievable
         try {
@@ -214,11 +217,11 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Create a fact table
         AtlasEntity factTable = getAtlasEntity(TYPE_TABLE, "test_fact_table_purge_delete_inverse" + getRandomName());
         String factTableGuid = createEntity(factTable).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create dimension table and link it to the fact table
         String dimensionTableGuid = createDimensionTableForFact(factTableGuid);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         factTable = getEntity(factTableGuid);
@@ -232,7 +235,7 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(DELETE_HANDLER_PURGE, response.getDeletedEntities().get(0).getDeleteHandler().toUpperCase());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify dimension table is not retrievable
         try {
@@ -262,11 +265,11 @@ public class SanityAssociationDeleteOperationsInverse implements TestsMain {
         // Create dimension table with fact relationship
         AtlasEntity dimensionTable = getAtlasEntity(TYPE_TABLE, "test_dimension_table_" + getRandomName());
         dimensionTable.setRelationshipAttribute(FACTS, Collections.singletonList(getObjectId(factTableGuid, TYPE_TABLE)));
-        
+
         // Create entity
         EntityMutationResponse response = createEntity(dimensionTable);
         String dimensionTableGuid = response.getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         return dimensionTableGuid;
     }

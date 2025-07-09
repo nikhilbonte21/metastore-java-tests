@@ -22,6 +22,8 @@ import static com.tests.main.utils.TestUtil.TYPE_CATEGORY;
 import static com.tests.main.utils.TestUtil.TYPE_GLOSSARY;
 import static com.tests.main.utils.TestUtil.TYPE_TERM;
 import static com.tests.main.utils.TestUtil.cleanUpAll;
+import static com.tests.main.utils.TestUtil.createChildrenCategories;
+import static com.tests.main.utils.TestUtil.createChildrenTerms;
 import static com.tests.main.utils.TestUtil.createEntitiesBulk;
 import static com.tests.main.utils.TestUtil.createEntity;
 import static com.tests.main.utils.TestUtil.deleteEntityDefault;
@@ -61,6 +63,9 @@ import static org.junit.Assert.fail;
  */
 public class SanityCompositionDeleteOperations implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityCompositionDeleteOperations.class);
+
+    private static long SLEEP = 1000;
+
     private static final String DIMENSIONS = "dimensions";
     private static final String FACTS = "facts";
     private static final String DELETE_HANDLER_DEFAULT = "DEFAULT";
@@ -91,16 +96,15 @@ public class SanityCompositionDeleteOperations implements TestsMain {
 
     private void testDefaultDelete() throws Exception {
         LOG.info(">> testDefaultDelete");
-        
-        // Create a fact table
-        AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, "test_fact_table_default_delete" + getRandomName());
+
+        AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, "test_glossary_delete" + getRandomName());
         String glossaryGuid = createEntity(glossary).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create dimension tables and link them to the fact table
         List<String> termGuids = createChildrenTerms(glossaryGuid, NUM_CHILDREN);
         List<String> categoryGuids = createChildrenCategories(glossaryGuid, NUM_CHILDREN);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         glossary = getEntity(glossaryGuid);
@@ -116,7 +120,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         for (String categoryGuid : categoryGuids) {
             AtlasEntity category = getEntity(categoryGuid);
             verifyESAttributes(categoryGuid, mapOf(ATTR_STATE, ACTIVE.name()));
-            List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute("terms");
+            List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute(REL_TERMS);
             assertNotNull(categoryTerms);
             assertEquals(NUM_CHILDREN, categoryTerms.size());
             assertEquals(NUM_CHILDREN, categoryTerms.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).count());
@@ -129,7 +133,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(1 + (NUM_CHILDREN * 2), response.getDeletedEntities().stream().filter(x -> DELETE_HANDLER_DEFAULT.equals(x.getDeleteHandler().toUpperCase())).count());
         assertEquals(NUM_CHILDREN, response.getDeletedEntities().stream().filter(x -> DELETE_HANDLER_HARD.equals(x.getDeleteHandler().toUpperCase())).count());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify Glossary is deleted but still retrievable
         glossary = getEntity(glossaryGuid);
@@ -154,7 +158,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         for (String categoryGuid : categoryGuids) {
             AtlasEntity category = getEntity(categoryGuid);
             verifyESAttributes(categoryGuid, mapOf(ATTR_STATE, DELETED.name()));
-            List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute("terms");
+            List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute(REL_TERMS);
             assertNotNull(categoryTerms);
             assertEquals(NUM_CHILDREN, categoryTerms.size());
             assertEquals(NUM_CHILDREN, categoryTerms.stream().filter(x -> "DELETED".equals(x.get("relationshipStatus"))).count());
@@ -169,12 +173,12 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Create a glossary (parent)
         AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, "test_glossary_soft_delete" + getRandomName());
         String glossaryGuid = createEntity(glossary).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create terms and categories (children)
         List<String> termGuids = createChildrenTerms(glossaryGuid, NUM_CHILDREN);
         List<String> categoryGuids = createChildrenCategories(glossaryGuid, NUM_CHILDREN);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         glossary = getEntity(glossaryGuid);
@@ -190,7 +194,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         for (String categoryGuid : categoryGuids) {
             AtlasEntity category = getEntity(categoryGuid);
             verifyESAttributes(categoryGuid, mapOf(ATTR_STATE, ACTIVE.name()));
-            List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute("terms");
+            List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute(REL_TERMS);
             assertNotNull(categoryTerms);
             assertEquals(NUM_CHILDREN, categoryTerms.size());
             assertEquals(NUM_CHILDREN, categoryTerms.stream().filter(x -> "ACTIVE".equals(x.get("relationshipStatus"))).count());
@@ -202,7 +206,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(1 + (NUM_CHILDREN * 2), response.getDeletedEntities().stream().filter(x -> DELETE_HANDLER_SOFT.equals(x.getDeleteHandler().toUpperCase())).count());
         assertEquals(NUM_CHILDREN, response.getDeletedEntities().stream().filter(x -> DELETE_HANDLER_HARD.equals(x.getDeleteHandler().toUpperCase())).count());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify Glossary is deleted but still retrievable
         glossary = getEntity(glossaryGuid);
@@ -227,7 +231,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         for (String categoryGuid : categoryGuids) {
             AtlasEntity category = getEntity(categoryGuid);
             verifyESAttributes(categoryGuid, mapOf(ATTR_STATE, DELETED.name()));
-            List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute("terms");
+            List<Map<String, Object>> categoryTerms = (List<Map<String, Object>>) category.getRelationshipAttribute(REL_TERMS);
             assertNotNull(categoryTerms);
             assertEquals(NUM_CHILDREN, categoryTerms.size());
             assertEquals(NUM_CHILDREN, categoryTerms.stream().filter(x -> "DELETED".equals(x.get("relationshipStatus"))).count());
@@ -242,12 +246,12 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Create a glossary (parent)
         AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, "test_glossary_hard_delete" + getRandomName());
         String glossaryGuid = createEntity(glossary).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create terms and categories (children)
         List<String> termGuids = createChildrenTerms(glossaryGuid, NUM_CHILDREN);
         List<String> categoryGuids = createChildrenCategories(glossaryGuid, NUM_CHILDREN);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         glossary = getEntity(glossaryGuid);
@@ -264,7 +268,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(response.getDeletedEntities().size(), response.getDeletedEntities().stream().filter(x -> DELETE_HANDLER_HARD.equals(x.getDeleteHandler().toUpperCase())).count());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify Glossary is not retrievable
         try {
@@ -319,12 +323,12 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         // Create a glossary (parent)
         AtlasEntity glossary = getAtlasEntity(TYPE_GLOSSARY, "test_glossary_purge_delete" + getRandomName());
         String glossaryGuid = createEntity(glossary).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         // Create terms and categories (children)
         List<String> termGuids = createChildrenTerms(glossaryGuid, NUM_CHILDREN);
         List<String> categoryGuids = createChildrenCategories(glossaryGuid, NUM_CHILDREN);
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify initial state
         glossary = getEntity(glossaryGuid);
@@ -341,7 +345,7 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         assertNotNull(response);
         assertTrue(response.getDeletedEntities().size() > 0);
         assertEquals(response.getDeletedEntities().size(), response.getDeletedEntities().stream().filter(x -> DELETE_HANDLER_PURGE.equals(x.getDeleteHandler().toUpperCase())).count());
-        sleep(2);
+        sleep(SLEEP);
 
         // Verify Glossary is not retrievable
         try {
@@ -388,45 +392,5 @@ public class SanityCompositionDeleteOperations implements TestsMain {
         verifyESDocumentNotPresent(Arrays.toString(allGuids.toArray()));
 
         LOG.info("<< testPurgeDelete");
-    }
-
-    public static List<String> createChildrenTerms(String glossaryGuid, int numChildren) throws Exception {
-        List<AtlasEntity> entitiesToCreate = new ArrayList<>();
-
-        for (int i = 0; i < numChildren; i++) {
-            AtlasEntity term = getAtlasEntity(TYPE_TERM, "test_term_" + i + "_" + getRandomName());
-            term.setRelationshipAttribute(ANCHOR, getObjectId(glossaryGuid, TYPE_GLOSSARY));
-            entitiesToCreate.add(term);
-        }
-
-        return createChildren(entitiesToCreate);
-    }
-
-    public static List<String> createChildrenCategories(String glossaryGuid, int numChildren) throws Exception {
-        List<AtlasEntity> entitiesToCreate = new ArrayList<>();
-
-        List<String> termGuids = createChildrenTerms(glossaryGuid, numChildren);
-
-        for (int i = 0; i < numChildren; i++) {
-            AtlasEntity category = getAtlasEntity(TYPE_CATEGORY, "test_category_" + i + "_" + getRandomName());
-            category.setRelationshipAttribute(ANCHOR, getObjectId(glossaryGuid, TYPE_GLOSSARY));
-            category.setRelationshipAttribute("terms", Collections.singletonList(getObjectId(termGuids.get(i), TYPE_TERM)));
-            entitiesToCreate.add(category);
-        }
-
-        return createChildren(entitiesToCreate);
-    }
-
-    private static List<String> createChildren(List<AtlasEntity> entitiesToCreate) throws Exception {
-        List<String> childrenGuids = new ArrayList<>();
-
-        // Create all entities in one request
-        EntityMutationResponse response = createEntitiesBulk(entitiesToCreate);
-        for (AtlasEntityHeader createdEntity : response.getCreatedEntities()) {
-            childrenGuids.add(createdEntity.getGuid());
-        }
-        sleep(2);
-
-        return childrenGuids;
     }
 } 

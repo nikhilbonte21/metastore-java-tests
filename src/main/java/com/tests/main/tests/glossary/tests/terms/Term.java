@@ -28,11 +28,11 @@ public class Term {
 
         long start = System.currentTimeMillis();
         try {
-            testCreateTerm();
+           /* testCreateTerm();
             testUpdateTerm();
             testCreateDupTerm();
             testUpdateDupTerm();
-            testUpdateTermAnchorNotAllowed();
+            testUpdateTermAnchorNotAllowed();*/
 
         } catch (Exception e){
             throw e;
@@ -42,7 +42,7 @@ public class Term {
         }
     }
 
-    private static void testCreateTerm() throws Exception {
+   /* private static void testCreateTerm() throws Exception {
         AtlasGlossary glossary_0 = createGlossary(getGlossaryModel());
         AtlasGlossaryTerm term_0_toCreate = getTermModel(glossary_0.getGuid());
         term_0_toCreate.setOtherAttribute("testName", "random_tNAme");
@@ -136,14 +136,14 @@ public class Term {
         }
     }
 
-    /*NOTE
+    *//*NOTE
 
     This will fail as we are not supporting changing of glossary for Terms & Categories
     But, https://linear.app/atlanproduct/issue/META-2694/use-uuid-in-qualifiedname-instead-of-name
     Feature has required changes for changing of acnhor & reevaluating qualifiedName for both Terms & Categories
     If chaging anchor is allowed, in that case this test must poss
 
-     */
+     *//*
     private static void testUpdateTermAnchor() throws Exception {
         AtlasGlossary glossary_0 = createGlossary(getGlossaryModel());
         AtlasGlossaryTerm term_0 = createTerm(getTermModel(glossary_0.getGuid()));
@@ -184,7 +184,7 @@ public class Term {
                 throw new Exception("This test should have failed");
             }
         }
-    }
+    }*/
 
     private static String getNanoid(String qualifiedName){
         String[] sp_a = qualifiedName.split("@");

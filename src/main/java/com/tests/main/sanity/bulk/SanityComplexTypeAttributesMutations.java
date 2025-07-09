@@ -9,6 +9,7 @@ import org.apache.atlas.model.instance.AtlasStruct;
 import org.apache.atlas.model.typedef.AtlasStructDef.AtlasAttributeDef;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,8 @@ import static org.junit.Assert.*;
 
 public class SanityComplexTypeAttributesMutations implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(SanityComplexTypeAttributesMutations.class);
+
+    private static long SLEEP = 2000;
 
     public static String TYPE_COMPLEX_TEST = "ComplexTest0";
     public static String ATTR_POPULARITY_INSIGHTS = "popularityInsightsTest";
@@ -98,8 +101,11 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         AtlasTypesDef typesDef = new AtlasTypesDef();
         typesDef.setEntityDefs(Collections.singletonList(complexTestDef));
         
-        // Create types in Atlas
-        TestUtil.createTypeDefs(typesDef);
+        try {
+            TestUtil.createTypeDefs(typesDef);
+        } catch (Exception e) {
+            LOG.warn(e.getMessage());
+        }
     }
 
     @Test
@@ -123,7 +129,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         AtlasEntity complexTest = getAtlasEntity(TYPE_COMPLEX_TEST, "complextest_0");
         String complexTestGuid = createEntity(complexTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         // 1. Set struct attribute with one field (recordUser)
@@ -131,7 +137,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_POPULARITY_INSIGHTS, popularityInsights);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_POPULARITY_INSIGHTS));
@@ -147,7 +153,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_POPULARITY_INSIGHTS, popularityInsights);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_POPULARITY_INSIGHTS));
@@ -163,7 +169,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_POPULARITY_INSIGHTS, popularityInsights);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_POPULARITY_INSIGHTS));
@@ -177,7 +183,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_POPULARITY_INSIGHTS, null);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNull(complexTest.getAttribute(ATTR_POPULARITY_INSIGHTS));
@@ -188,7 +194,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_POPULARITY_INSIGHTS, popularityInsights);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_POPULARITY_INSIGHTS));
@@ -221,7 +227,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         AtlasEntity complexTest = getAtlasEntity(TYPE_COMPLEX_TEST, "complextest_0");
         String complexTestGuid = createEntity(complexTest).getGuidAssignments().values().iterator().next();
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         // 1. Set tag attribute with one value in sourceTagValue array
@@ -246,7 +252,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG, tagStruct);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         assertNotNull(complexTest.getAttribute(ATTR_TAG));
@@ -262,8 +268,9 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
 
         List<Map<String, Object>> sourceTagValues = (List<Map<String, Object>>) attributes.get("sourceTagValue");
         assertEquals(1, sourceTagValues.size());
-        assertEquals("has_pii", sourceTagValues.get(0).get("tagAttachmentKey"));
-        assertEquals("true", sourceTagValues.get(0).get("tagAttachmentValue"));
+
+        Map<String, String> sourceTagValueKVPair = getSourceTagValuePairs(sourceTagValues);
+        assertEquals("true", sourceTagValueKVPair.get("has_pii"));
 
         // 2. Add two more values in sourceTagValue array
         tagValues = new ArrayList<>();
@@ -287,7 +294,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG, tagStruct);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagMap = (Map<String, Object>) complexTest.getAttribute(ATTR_TAG);
@@ -295,10 +302,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         sourceTagValues = (List<Map<String, Object>>) attributes.get("sourceTagValue");
         assertEquals(3, sourceTagValues.size());
         
-        Map<String, String> tagValueMap = new HashMap<>();
-        for (Map<String, Object> value : sourceTagValues) {
-            tagValueMap.put((String)value.get("tagAttachmentKey"), (String)value.get("tagAttachmentValue"));
-        }
+        Map<String, String> tagValueMap = getSourceTagValuePairs(sourceTagValues);
         assertEquals("true", tagValueMap.get("has_pii"));
         assertEquals("email", tagValueMap.get("type_pii"));
         assertEquals("high", tagValueMap.get("sensitivity"));
@@ -320,7 +324,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG, tagStruct);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagMap = (Map<String, Object>) complexTest.getAttribute(ATTR_TAG);
@@ -328,10 +332,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         sourceTagValues = (List<Map<String, Object>>) attributes.get("sourceTagValue");
         assertEquals(2, sourceTagValues.size());
         
-        tagValueMap = new HashMap<>();
-        for (Map<String, Object> value : sourceTagValues) {
-            tagValueMap.put((String)value.get("tagAttachmentKey"), (String)value.get("tagAttachmentValue"));
-        }
+        tagValueMap = getSourceTagValuePairs(sourceTagValues);
         assertEquals("true", tagValueMap.get("has_pii"));
         assertEquals("high", tagValueMap.get("sensitivity"));
 
@@ -352,7 +353,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG, tagStruct);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagMap = (Map<String, Object>) complexTest.getAttribute(ATTR_TAG);
@@ -360,10 +361,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         sourceTagValues = (List<Map<String, Object>>) attributes.get("sourceTagValue");
         assertEquals(2, sourceTagValues.size());
         
-        tagValueMap = new HashMap<>();
-        for (Map<String, Object> value : sourceTagValues) {
-            tagValueMap.put((String)value.get("tagAttachmentKey"), (String)value.get("tagAttachmentValue"));
-        }
+        tagValueMap = getSourceTagValuePairs(sourceTagValues);
         assertEquals("email", tagValueMap.get("type_pii"));
         assertEquals("high", tagValueMap.get("sensitivity"));
 
@@ -374,7 +372,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG, tagStruct);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagMap = (Map<String, Object>) complexTest.getAttribute(ATTR_TAG);
@@ -404,7 +402,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         complexTest.setAttribute(ATTR_TAG, tagStruct);
         createEntity(complexTest);
 
-        sleep(2);
+        sleep(SLEEP);
         complexTest = getEntity(complexTestGuid);
 
         tagMap = (Map<String, Object>) complexTest.getAttribute(ATTR_TAG);
@@ -412,10 +410,7 @@ public class SanityComplexTypeAttributesMutations implements TestsMain {
         sourceTagValues = (List<Map<String, Object>>) attributes.get("sourceTagValue");
         assertEquals(3, sourceTagValues.size());
         
-        tagValueMap = new HashMap<>();
-        for (Map<String, Object> value : sourceTagValues) {
-            tagValueMap.put((String)value.get("tagAttachmentKey"), (String)value.get("tagAttachmentValue"));
-        }
+        tagValueMap = getSourceTagValuePairs(sourceTagValues);
         assertEquals("true", tagValueMap.get("has_pii"));
         assertEquals("email", tagValueMap.get("type_pii"));
         assertEquals("high", tagValueMap.get("sensitivity"));

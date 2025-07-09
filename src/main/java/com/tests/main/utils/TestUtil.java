@@ -9,7 +9,7 @@ import com.tests.main.lineage.AtlasLineageRequest;
 import okhttp3.OkHttpClient;
 import org.apache.atlas.model.audit.EntityAuditSearchResult;
 import org.apache.atlas.model.discovery.AtlasSearchResult;
-import org.apache.atlas.model.discovery.IndexSearchParams;
+import com.tests.main.IndexSearchParams;
 import org.apache.atlas.model.glossary.AtlasGlossary;
 import org.apache.atlas.model.glossary.AtlasGlossaryCategory;
 import com.tests.main.tests.glossary.models.AtlasGlossaryTerm;
@@ -36,8 +36,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.tests.main.tests.glossary.tests.TestsRunner.guidsToDelete;
+import static com.tests.main.utils.Constants.DIMENSIONS;
+import static com.tests.main.utils.Constants.FACTS;
+import static com.tests.main.utils.Constants.TABLE;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
 
@@ -57,6 +61,8 @@ public class TestUtil {
     public static final String TYPE_TERM = "AtlasGlossaryTerm";
     public static final String TYPE_PROCESS = "Process";
     public static final String TYPE_COLUMN_PROCESS = "ColumnProcess";
+    public static final String TYPE_DATABASE = "Database";
+    public static final String TYPE_SCHEMA = "Schema";
     public static final String TYPE_TABLE = "Table";
     public static final String TYPE_VIEW = "View";
     public static final String TYPE_COLUMN = "Column";
@@ -170,26 +176,8 @@ public class TestUtil {
         return runAsGuest;
     }
 
-    public static AtlasGlossary createGlossary(AtlasGlossary glossary) throws Exception {
-        /*AtlasGlossary glossary_0 = getAtlasClient().createGlossary(glossary);
-        guidsToDelete.add(glossary_0.getGuid());
-        return glossary_0;*/
-        return null;
-    }
-
-
     public static String getAdminStatus() throws Exception {
         //return getAtlasClient().getAdminStatus();
-        return null;
-    }
-
-    public static AtlasGlossary getGlossary(String guid) throws Exception {
-        //return getAtlasClient().getGlossaryByGuid(guid);
-        return null;
-    }
-
-    public static List<AtlasGlossary> getGlossaries() throws Exception {
-        //return getAtlasClient().getAllGlossaries("ASC", 9999, 0);
         return null;
     }
 
@@ -306,7 +294,7 @@ public class TestUtil {
     }
 
     public static EntityMutationResponse updateEntity(AtlasEntity entity) throws Exception {
-        return createEntity(entity);
+        return createEntitiesBulk(entity);
     }
 
     public static EntityMutationResponse updateEntitiesBulk(AtlasEntity... entities) throws Exception {
@@ -315,6 +303,14 @@ public class TestUtil {
 
     public static EntityMutationResponse createEntity(AtlasEntity entity) throws Exception {
         return createEntity(new AtlasEntity.AtlasEntityWithExtInfo(entity));
+    }
+
+    public static void repairEntityByGuid(String guid) throws Exception {
+        getAtlasClient().repairEntityByGuid(guid);
+    }
+
+    public static void repairEntitiesByGuid(List<String> guids) throws Exception {
+        getAtlasClient().repairEntitiesByGuid(guids);
     }
 
     public static AtlasEntity createAndGetEntity(AtlasEntity entity) throws Exception {
@@ -381,6 +377,21 @@ public class TestUtil {
         return ret;
     }
 
+    public static Set setOf(Object... items) throws Exception {
+        Set ret = new HashSet<>();
+
+        if (items != null) {
+            for (int i = 0 ; i < items.length; i++) {
+                ret.add(items[i]);
+            }
+
+        } else {
+            throw new Exception("Please pass items to add into map");
+        }
+
+        return ret;
+    }
+
     public static List listOf(Object... items) throws Exception {
         List<Object> ret = new ArrayList();
 
@@ -406,6 +417,8 @@ public class TestUtil {
     public static EntityMutationResponse createEntitiesBulk(AtlasEntity... entities) throws Exception {
         AtlasEntity.AtlasEntitiesWithExtInfo entitiesWithExtInfo = new AtlasEntity.AtlasEntitiesWithExtInfo();
         Arrays.stream(entities).forEach(entitiesWithExtInfo::addEntity);
+
+        //LOG.info("\n" + TestUtil.toJson(entities) + "\n");
 
         return createEntitiesBulk(entitiesWithExtInfo);
     }
@@ -434,7 +447,6 @@ public class TestUtil {
     public static AtlasBusinessMetadataDef getBusinessMetadataDef(String bmName) throws Exception {
         AtlasBusinessMetadataDef businessMetadataDef = new AtlasBusinessMetadataDef();
         businessMetadataDef.setName(bmName);
-        businessMetadataDef.setDisplayName(bmName);
 
         return businessMetadataDef;
     }
@@ -447,18 +459,9 @@ public class TestUtil {
 
         attr.setIsOptional(true);
         attr.setIsUnique(false);
-        attr.setSkipScrubbing(true);
         attr.setCardinality(AtlasStructDef.AtlasAttributeDef.Cardinality.SINGLE);
 
         return attr;
-    }
-
-    public static AtlasBusinessMetadataDef createBusinessMetadataDefs(AtlasBusinessMetadataDef businessMetadataDef) throws Exception {
-        /*AtlasTypesDef typesDef = new AtlasTypesDef();
-        typesDef.setBusinessMetadataDefs(Collections.singletonList(businessMetadataDef));
-
-        return getAtlasClient().createAtlasTypeDefs(typesDef).getBusinessMetadataDefs().get(0);*/
-        return null;
     }
 
     public static List<AtlasClassificationDef> createClassificationDefs(List<AtlasClassificationDef> tags) throws Exception {
@@ -486,13 +489,20 @@ public class TestUtil {
         return getAtlasClient().getEntityByGuid(guid).getEntity();
     }
 
-    public static void createTypeDefs(AtlasTypesDef typesDef) throws Exception {
-        getAtlasClient().createTypeDef(typesDef);
+    public static AtlasTypesDef createTypeDefs(AtlasTypesDef typesDef) throws Exception {
+        return getAtlasClient().createTypeDef(typesDef);
+    }
+
+    public static AtlasTypesDef getBMDefs() throws Exception {
+        return getAtlasClient().getBMDefs();
+    }
+
+    public static AtlasTypesDef getTagDefs() throws Exception {
+        return getAtlasClient().getTagDefs();
     }
 
     public static AtlasSearchResult indexSearch(IndexSearchParams indexSearchParams) throws Exception {
-        //return getAtlasClient().indexSearch(indexSearchParams);
-        return null;
+        return getAtlasClient().indexSearch(indexSearchParams);
     }
 
     public static AtlasLineageInfo getLineageInfo(String guid, AtlasLineageInfo.LineageDirection direction, int depth, boolean hideProcess) throws Exception {
@@ -574,11 +584,18 @@ public class TestUtil {
     }
 
     public static String getRandomName() {
-        return RandomStringUtils.randomAlphanumeric(8);
+        synchronized (TestUtil.class) {
+            return RandomStringUtils.randomAlphanumeric(16);
+        }
     }
 
     public static void cleanUpAll() throws Exception {
+        LOG.info("Performing cleanup...");
         deleteAllEntities();
+    }
+
+    public static void deleteTypeDefByName(String typeName) throws Exception {
+        getAtlasClient().deleteTypeDefByName(typeName);
     }
 
     public static void cleanUpAllForEach() throws Exception {
@@ -790,7 +807,9 @@ public class TestUtil {
         entityName = entityName + getRandomName();
         entityName = CONNECTION_PREFIX + entityName;
         entity.setAttribute(NAME, entityName);
-        entity.setAttribute(QUALIFIED_NAME, entityName);
+        entity.setAttribute(QUALIFIED_NAME, entityName + "_" + System.currentTimeMillis());
+
+        //LOG.info("entity.qualifiedName : " + entity.getAttribute(QUALIFIED_NAME));
 
         return entity;
     }
@@ -955,6 +974,12 @@ public class TestUtil {
         }
     }
 
+    public static Map<String, Object> getESDoc(String entityGuid) {
+
+        SearchHit[] searchHit = ESUtil.searchWithGuid(entityGuid).getHits().getHits();
+        return searchHit[0].getSourceAsMap();
+    }
+
     public static void verifyESHasNot(String entityGuid, String... blackAttrs) {
 
         SearchHit[] searchHit = ESUtil.searchWithGuid(entityGuid).getHits().getHits();
@@ -1014,10 +1039,10 @@ public class TestUtil {
         }
     }
 
-    public static void sleep(long seconds) {
+    public static void sleep(long millis) {
         try {
-            LOG.info("Sleeping for {} seconds", seconds);
-            Thread.sleep(seconds * 1000);
+            LOG.info("Sleeping for {} seconds", millis / 1000);
+            Thread.sleep(millis);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -1071,7 +1096,7 @@ public class TestUtil {
         return ret;
     }
 
-    public static void verifyESAttributes(String assetGuid, Map<String, Object> expectedAttributes) throws Exception {
+    public static Map<String, Object> verifyESAttributes(String assetGuid, Map<String, Object> expectedAttributes) throws Exception {
         SearchHit[] searchHits = ESUtil.searchWithGuid(assetGuid).getHits().getHits();
         assertTrue("No ES document found for guid: " + assetGuid, searchHits.length > 0);
 
@@ -1119,7 +1144,11 @@ public class TestUtil {
                     }
                 }
             }
+
+            return sourceAsMap;
         }
+
+        return null;
     }
 
     private static boolean isValueEqual(Object expected, Object actual) {
@@ -1154,5 +1183,122 @@ public class TestUtil {
             SearchHit[] searchHits = ESUtil.searchWithGuid(guid).getHits().getHits();
             assertEquals("ES document should not exist for guid: " + guid, 0, searchHits.length);
         }
+    }
+
+    public static void addOrUpdateCMAttrBulk(String assetGuid, Map<String, Object> bm) throws Exception {
+        getAtlasClient().addOrUpdateCMAttrBulk(assetGuid, bm);
+    }
+
+    public static void addOrUpdateCMAttr(String assetGuid, String bmName, Map<String, Object> bmAttrs) throws Exception {
+        getAtlasClient().addOrUpdateCMAttr(assetGuid, bmName, bmAttrs);
+    }
+
+    public static List<String> createColumnsForTable(String tableGuid, int numColumns) throws Exception {
+        List<AtlasEntity> entitiesToCreate = new ArrayList<>();
+
+        for (int i = 0; i < numColumns; i++) {
+            AtlasEntity column = getAtlasEntity(TYPE_COLUMN, "test_column_" + i + "_" + getRandomName());
+            column.setRelationshipAttribute(TABLE, getObjectId(tableGuid, TYPE_TABLE));
+            entitiesToCreate.add(column);
+        }
+
+        EntityMutationResponse response = createEntitiesBulk(entitiesToCreate);
+        return response.getCreatedEntities().stream().map(AtlasEntityHeader::getGuid).collect(Collectors.toList());
+    }
+
+    public static List<String> createTables(int numTables) throws Exception {
+        List<AtlasEntity> entitiesToCreate = new ArrayList<>();
+
+        for (int i = 0; i < numTables; i++) {
+            AtlasEntity dimensionTable = getAtlasEntity(TYPE_TABLE, "test_table_" + i + "_" + getRandomName());
+            entitiesToCreate.add(dimensionTable);
+        }
+
+        EntityMutationResponse response = createEntitiesBulk(entitiesToCreate);
+        return response.getCreatedEntities().stream().map(AtlasEntityHeader::getGuid).collect(Collectors.toList());
+    }
+
+    public static List<String> createDimensionTablesForFact(int numDimensions, String... factTableGuids) throws Exception {
+        List<AtlasEntity> entitiesToCreate = new ArrayList<>();
+
+        // Create dimension tables with fact relationship
+        for (int i = 0; i < numDimensions; i++) {
+            AtlasEntity dimensionTable = getAtlasEntity(TYPE_TABLE, "test_dimension_table_" + i + "_" + getRandomName());
+            dimensionTable.setRelationshipAttribute(FACTS, getObjectIdsAsList(TYPE_TABLE, factTableGuids));
+            entitiesToCreate.add(dimensionTable);
+        }
+
+        EntityMutationResponse response = createEntitiesBulk(entitiesToCreate);
+        return response.getCreatedEntities().stream().map(AtlasEntityHeader::getGuid).collect(Collectors.toList());
+    }
+
+    public static List<String> createFactTablesForDimension(String dimensionTableGuid, int numFacts) throws Exception {
+        List<AtlasEntity> entitiesToCreate = new ArrayList<>();
+
+        // Create Fact tables with fact relationship
+        for (int i = 0; i < numFacts; i++) {
+            AtlasEntity dimensionTable = getAtlasEntity(TYPE_TABLE, "test_fact_table_" + i + "_" + getRandomName());
+            dimensionTable.setRelationshipAttribute(DIMENSIONS, Collections.singletonList(getObjectId(dimensionTableGuid, TYPE_TABLE)));
+            entitiesToCreate.add(dimensionTable);
+        }
+
+        EntityMutationResponse response = createEntitiesBulk(entitiesToCreate);
+        return response.getCreatedEntities().stream().map(AtlasEntityHeader::getGuid).collect(Collectors.toList());
+    }
+
+    public static List<String> createChildrenTerms(String glossaryGuid, int numChildren) throws Exception {
+        List<AtlasEntity> entitiesToCreate = new ArrayList<>();
+
+        for (int i = 0; i < numChildren; i++) {
+            AtlasEntity term = getAtlasEntity(TYPE_TERM, "test_term_" + i + "_" + getRandomName());
+            term.setRelationshipAttribute(ANCHOR, getObjectId(glossaryGuid, TYPE_GLOSSARY));
+            entitiesToCreate.add(term);
+        }
+
+        return createChildren(entitiesToCreate);
+    }
+
+    public static List<String> createChildrenCategories(String glossaryGuid, int numChildren) throws Exception {
+        List<AtlasEntity> entitiesToCreate = new ArrayList<>();
+
+        List<String> termGuids = createChildrenTerms(glossaryGuid, numChildren);
+
+        for (int i = 0; i < numChildren; i++) {
+            AtlasEntity category = getAtlasEntity(TYPE_CATEGORY, "test_category_" + i + "_" + getRandomName());
+            category.setRelationshipAttribute(ANCHOR, getObjectId(glossaryGuid, TYPE_GLOSSARY));
+            category.setRelationshipAttribute("terms", Collections.singletonList(getObjectId(termGuids.get(i), TYPE_TERM)));
+            entitiesToCreate.add(category);
+        }
+
+        return createChildren(entitiesToCreate);
+    }
+
+    public static Map<String, String> getSourceTagValuePairs(List<Map<String, Object>> sourceTagValues) {
+        Map<String, String> ret = new HashMap<>(sourceTagValues.size());
+
+        for (Map<String, Object> item: sourceTagValues) {
+            if (item.containsKey("attributes")) {
+                item = (Map<String, Object>) item.get("attributes");
+            }
+            ret.put(item.get("tagAttachmentKey").toString(), item.get("tagAttachmentValue").toString());
+        }
+
+        return ret;
+    }
+
+    private static List<String> createChildren(List<AtlasEntity> entitiesToCreate) throws Exception {
+        List<String> childrenGuids = new ArrayList<>();
+
+        // Create all entities in one request
+        EntityMutationResponse response = createEntitiesBulk(entitiesToCreate);
+        for (AtlasEntityHeader createdEntity : response.getCreatedEntities()) {
+            childrenGuids.add(createdEntity.getGuid());
+        }
+
+        return childrenGuids;
+    }
+
+    public static Map<String, Object> searchTasks(Object searchRequest) throws Exception {
+        return getAtlasClient().searchTasks(searchRequest);
     }
 }

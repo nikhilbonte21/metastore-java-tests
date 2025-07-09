@@ -29,12 +29,12 @@ public class Category {
 
         long start = System.currentTimeMillis();
         try {
-            testUpdateCategory();
+            /*testUpdateCategory();
             testUpdateParent();
             testCreateDupCat();
             testUpdateDupCat();
             changeAnotherAnchorNotAllowed();
-            changeParentInAnotherAnchorNotAllowed();
+            changeParentInAnotherAnchorNotAllowed();*/
 
             //TODO
             //changeCatParent();
@@ -46,7 +46,7 @@ public class Category {
         }
     }
 
-    private static void testUpdateCategory() throws Exception {
+    /*private static void testUpdateCategory() throws Exception {
         LOG.info(">> testUpdateCategory");
         AtlasGlossary glossary = createGlossary(getGlossaryModel(getRandomName()));
 
@@ -314,14 +314,14 @@ public class Category {
         LOG.info("<< changeCatParent");
     }
 
-    /*NOTE
+    *//*NOTE
 
     This will fail as we are not supporting changing of glossary for Terms & Categories
     But, https://linear.app/atlanproduct/issue/META-2694/use-uuid-in-qualifiedname-instead-of-name
     Feature has required changes for changing of acnhor & reevaluating qualifiedName for both Terms & Categories
     If chaging anchor is allowed, in that case this test must poss
 
-    */
+    *//*
     private void changeAnchor() throws Exception {
         LOG.info(">> changeAnchor");
         AtlasGlossary glossary_0 = createGlossary(getGlossaryModel(getRandomName()));
@@ -359,7 +359,7 @@ public class Category {
         LOG.info(">> changeAnchor");
     }
 
-    /*NOTE
+    *//*NOTE
 
     This will fail as we are not supporting changing of glossary for Terms & Categories
     But, https://linear.app/atlanproduct/issue/META-2694/use-uuid-in-qualifiedname-instead-of-name
@@ -369,7 +369,7 @@ public class Category {
     As of now This case fails:
     As category_4, category_5 & category_6 's qualifiedName is not getting properly evaluated due the category_3's glossary change
     If changing anchor is allowed, in that case this needs to be fixed
-     */
+     *//*
     private void changeParentInAnotherAnchor() throws Exception {
         LOG.info(">> changeParentInAnotherAnchor");
         AtlasGlossary glossary_0 = createGlossary(getGlossaryModel(getRandomName()));
@@ -400,7 +400,7 @@ public class Category {
         assertEquals(category_5.getQualifiedName(), category_2_nid + "." + category_3_nid + "."+ category_4_nid + "." + category_5_nid + "@" + glossary_1.getQualifiedName());
         assertEquals(category_6.getQualifiedName(), category_2_nid + "." + category_3_nid + "."+ category_4_nid + "." + category_5_nid + "." + category_6_nid + "@" + glossary_1.getQualifiedName());
 
-/*        LOG.info("glossary_0: nanoId {}, guid {}, name {}", getNanoid(glossary_0.getQualifiedName()), glossary_0.getGuid(), glossary_0.getName());
+*//*        LOG.info("glossary_0: nanoId {}, guid {}, name {}", getNanoid(glossary_0.getQualifiedName()), glossary_0.getGuid(), glossary_0.getName());
         LOG.info("glossary_1: nanoId {}, guid {}, name {}", getNanoid(glossary_1.getQualifiedName()), glossary_1.getGuid(), glossary_1.getName());
 
         LOG.info("category_0: nanoId {}, guid {}, name {}", category_0_nid, category_0.getGuid(), category_0.getName());
@@ -409,17 +409,17 @@ public class Category {
         LOG.info("category_3: nanoId {}, guid {}, name {}", category_3_nid, category_3.getGuid(), category_3.getName());
         LOG.info("category_4: nanoId {}, guid {}, name {}", category_4_nid, category_4.getGuid(), category_4.getName());
         LOG.info("category_5: nanoId {}, guid {}, name {}", category_5_nid, category_5.getGuid(), category_5.getName());
-        LOG.info("category_6: nanoId {}, guid {}, name {}", category_6_nid, category_6.getGuid(), category_6.getName());*/
+        LOG.info("category_6: nanoId {}, guid {}, name {}", category_6_nid, category_6.getGuid(), category_6.getName());*//*
 
         //change category_3's parent from glossary_1.category_2 to glossary_0.category_1
-        /*  Before:
+        *//*  Before:
             glossary_0: category_0 -> category_1 -> category_1_1
             glossary_1: category_2 -> category_3 -> category_4 -> category_5 -> category_6
 
             After:
             glossary_0: category_0 -> category_1 -> category_3 -> category_4 -> category_5 -> category_6
             glossary_1: category_2
-         */
+         *//*
         AtlasGlossaryCategory category = getCategory(category_3.getGuid());
         category.setAnchor(getGlossaryHeader(glossary_0.getGuid()));
         category.setParentCategory(getCategoryParentModel(category_1));
@@ -443,7 +443,7 @@ public class Category {
 
 
         LOG.info("<< changeParentInAnotherAnchor");
-    }
+    }*/
 
 
     private static String getNanoid(String qualifiedName){

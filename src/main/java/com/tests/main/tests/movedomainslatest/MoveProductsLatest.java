@@ -2,10 +2,8 @@ package com.tests.main.tests.movedomainslatest;
 
 import com.tests.main.CustomException;
 
-import com.tests.main.client.BearerAuthFilter;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
-import com.tests.main.utils.TestUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasObjectId;
 import org.apache.atlas.model.instance.AtlasRelationship;
@@ -29,8 +27,6 @@ import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.SUPER_DOM
 import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.chain;
 import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.getDomainAsRelation;
 import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.getDomainEntity;
-import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.getPersona;
-import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.getPersonaPolicy;
 import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.getProductAsRelation;
 import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.getProductEntity;
 import static com.tests.main.tests.movedomainslatest.DomainUtilsLatest.getNanoId;
@@ -44,8 +40,6 @@ import static com.tests.main.utils.TestUtil.deleteRelationshipByGuid;
 import static com.tests.main.utils.TestUtil.getEntity;
 import static com.tests.main.utils.TestUtil.runAsAdmin;
 import static com.tests.main.utils.TestUtil.runAsGod;
-import static com.tests.main.utils.TestUtil.runAsMember;
-import static com.tests.main.utils.TestUtil.setAtlasClient;
 import static com.tests.main.utils.TestUtil.sleep;
 import static com.tests.main.utils.TestUtil.updateRelationship;
 import static org.apache.atlas.model.instance.AtlasEntity.Status.ACTIVE;
