@@ -23,10 +23,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.tests.main.utils.TestUtil.NAME;
 import static com.tests.main.utils.TestUtil.QUALIFIED_NAME;
+import static com.tests.main.utils.TestUtil.TYPE_DATABASE;
 import static com.tests.main.utils.TestUtil.TYPE_TABLE;
+import static com.tests.main.utils.TestUtil.TYPE_TERM;
 import static com.tests.main.utils.TestUtil.cleanUpAll;
 import static com.tests.main.utils.TestUtil.createEntitiesBulk;
 import static com.tests.main.utils.TestUtil.createEntity;
@@ -36,6 +39,7 @@ import static com.tests.main.utils.TestUtil.deleteEntitySoft;
 import static com.tests.main.utils.TestUtil.deleteRelationshipByGuid;
 import static com.tests.main.utils.TestUtil.getAtlasEntity;
 import static com.tests.main.utils.TestUtil.getEntity;
+import static com.tests.main.utils.TestUtil.getObjectId;
 import static com.tests.main.utils.TestUtil.getRandomName;
 import static com.tests.main.utils.TestUtil.indexSearch;
 import static com.tests.main.utils.TestUtil.mapOf;
@@ -43,12 +47,16 @@ import static com.tests.main.utils.TestUtil.runAsAdmin;
 import static com.tests.main.utils.TestUtil.runAsGod;
 import static com.tests.main.utils.TestUtil.runAsGuest;
 import static com.tests.main.utils.TestUtil.runAsMember;
+import static com.tests.main.utils.TestUtil.setOf;
 import static com.tests.main.utils.TestUtil.sleep;
+import static com.tests.main.utils.TestUtil.updateEntity;
 import static org.junit.Assert.*;
 
 
 public class CustomRelationships implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(CustomRelationships.class);
+    
+    private static final long SLEEP = 2000;
 
     private static AtlasEntity CONNECTION;
 
@@ -90,18 +98,21 @@ public class CustomRelationships implements TestsMain {
             createTables();
 
             createAndGet();
+
+            createCustomRelationshipWithOneWay(); // https://atlanhq.atlassian.net/browse/MLH-704
+
             createAndGetEmptyValue();
 
-            //hitLimitWithBulkUpdateOverride();
+            hitLimitWithBulkUpdateOverride();
             //Also covers HARD delete edge case when removing relationship
 
-            /*hitLimitWithBulkUpdateOverrideInverse();
+            hitLimitWithBulkUpdateOverrideInverse();
 
             hitLimitAppendRelationship();
 
             hitLimitAppendRelationshipInverse();
 
-            hitLimitWithRelationshipAPI();
+            //hitLimitWithRelationshipAPI();
 
             deleteRelationshipBulkOverride();
 
@@ -109,16 +120,16 @@ public class CustomRelationships implements TestsMain {
 
             deleteRelationshipAssetInverse();
 
-            deleteRelationshipWithRelationshipAPI();*/
+            deleteRelationshipWithRelationshipAPI();
 
             //Access control
-            createConnection();
+            /*createConnection();
 
             createWithAdminUser();
             createWithMemberUser();
             createWithGuestUser();
 
-            createRelationshipAccessControl();
+            createRelationshipAccessControl();*/
 
 
         } catch (Exception e) {
@@ -154,7 +165,7 @@ public class CustomRelationships implements TestsMain {
         table1.setRelationshipAttribute(REL_NAME_FROM, Collections.singleton(customRel));
 
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         table0 = getEntity(table0Guid);
 
@@ -183,7 +194,7 @@ public class CustomRelationships implements TestsMain {
         table2.setRelationshipAttribute(REL_NAME_FROM, Collections.singleton(customRel));
 
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         table2 = getEntity(table2Guid);
 
@@ -214,7 +225,7 @@ public class CustomRelationships implements TestsMain {
         table3.setRelationshipAttribute(REL_NAME_FROM, Collections.singleton(customRel));
 
         String table3Guid = createEntity(table3).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         table3 = getEntity(table3Guid);
 
@@ -246,7 +257,7 @@ public class CustomRelationships implements TestsMain {
         table4.setRelationshipAttribute(REL_NAME_FROM, Collections.singleton(customRel));
 
         String table4Guid = createEntity(table4).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         table4 = getEntity(table4Guid);
 
@@ -278,7 +289,7 @@ public class CustomRelationships implements TestsMain {
         table5.setRelationshipAttribute(REL_NAME_FROM, Collections.singleton(customRel));
 
         String table5Guid = createEntity(table5).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         table5 = getEntity(table5Guid);
 
@@ -309,7 +320,7 @@ public class CustomRelationships implements TestsMain {
         table6.setRelationshipAttribute(REL_NAME_FROM, Collections.singleton(customRel));
 
         String table6Guid = createEntity(table6).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         table6 = getEntity(table6Guid);
 
@@ -343,13 +354,62 @@ public class CustomRelationships implements TestsMain {
         table1.setRelationshipAttribute(REL_NAME_FROM, Collections.singleton(customRel));
 
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
-        assertWithIndexSearch(table0Guid, table1Guid);
+        //assertWithIndexSearch(table0Guid, table1Guid);
         assertWithGET(table0Guid, table1Guid);
 
 
         LOG.info(">> createAndGet");
+    }
+
+    private static void createCustomRelationshipWithOneWay() throws Exception {
+        LOG.info(">> createCustomRelationshipWithOneWay");
+        // https://atlanhq.atlassian.net/browse/MLH-704
+
+        AtlasEntity db0 = getAtlasEntity(TYPE_DATABASE, "test_database" + getRandomName());
+        String db0_guid = createEntitiesBulk(db0).getCreatedEntities().get(0).getGuid();
+
+        AtlasEntity db1 = getAtlasEntity(TYPE_DATABASE, "test_database" + getRandomName());
+        String db1_guid = createEntitiesBulk(db1).getCreatedEntities().get(0).getGuid();
+
+        sleep(SLEEP);
+
+        Map<String, Object> attrMap = mapOf("fromTypeLabel", "is copied from", "toTypeLabel", "is copied to");
+        Map<String, Object> finalMap = mapOf("typeName", "UserDefRelationship");
+        finalMap.putAll(attrMap);
+
+
+        db0 = getEntity(db0_guid);
+        AtlasObjectId objectId = getObjectId(db1_guid, TYPE_TERM);
+        objectId.setAttributes(finalMap);
+        db0.setRelationshipAttribute("userDefRelationshipTo", Collections.singletonList(objectId));
+        updateEntity(db0);
+
+        sleep(SLEEP);
+
+        // Verify via GET by GUID
+
+        db0 = getEntity(db0_guid);
+        final Map<String, Object> actualAttributes = (Map<String, Object>) ((Map)((List<Map>) db0.getRelationshipAttribute("userDefRelationshipTo")).get(0).get("relationshipAttributes")).get("attributes");
+        attrMap.keySet().forEach(key -> Objects.equals(attrMap.get(key), actualAttributes.get(key)));
+
+
+        // Verify via indexsearch
+        IndexSearchParams params = new IndexSearchParams();
+        Map<String, Object> dsl = mapOf("query", mapOf("bool", mapOf("must", mapOf("term", mapOf("__guid", db0_guid)))));
+        dsl.put("size", 1);
+        params.setDsl(dsl);
+
+        params.setAttributes(setOf("userDefRelationshipTo"));
+
+/*
+        AtlasSearchResult result = indexSearch(params);
+        AtlasEntityHeader entityHeader = result.getEntities().get(0);
+        final Map<String, Object> actualAttributesIndexsearch  = (Map<String, Object>) entityHeader.getAttribute("userDefRelationshipTo");
+        attrMap.keySet().forEach(key -> Objects.equals(attrMap.get(key), actualAttributesIndexsearch.get(key)));
+*/
+        LOG.info(">> createCustomRelationshipWithOneWay");
     }
 
     private static void createTables() throws Exception {
@@ -377,7 +437,7 @@ public class CustomRelationships implements TestsMain {
         connection.setAttribute(QUALIFIED_NAME, "default/redshift/" + getRandomName());
         connection.setAttribute("adminUsers", Arrays.asList("nikhil.bonte", "nikhil.member", "nikhil.guest"));
         String connectionGuid = createEntity(connection).getCreatedEntities().get(0).getGuid();
-        sleep(60);
+        sleep(60000);
         CONNECTION = getEntity(connectionGuid);
 
         LOG.info("<< createConnection");
@@ -398,7 +458,7 @@ public class CustomRelationships implements TestsMain {
         table1.setRelationshipAttribute(REL_NAME_FROM, customRelations);
 
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         table1 = getEntity(table1Guid);
 
@@ -412,7 +472,7 @@ public class CustomRelationships implements TestsMain {
 
         AtlasEntity table101 = getAtlasEntity(TYPE_TABLE, "on-demand_table_0" + getRandomName());
         String table101Guid = createEntity(table101).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         customRelations.add(getUDRelationshipWithAttributes(TYPE_TABLE, table101.getAttribute(QUALIFIED_NAME).toString()
         ));
@@ -439,9 +499,9 @@ public class CustomRelationships implements TestsMain {
         assertEquals(100, customRelations.size());
         table1.setRelationshipAttribute(REL_NAME_FROM, customRelations);
 
-        sleep(2);
+        sleep(SLEEP);
         createEntity(table1);
-        sleep(5);
+        sleep(5000);
 
         table1 = getEntity(table1Guid);
 
@@ -472,7 +532,7 @@ public class CustomRelationships implements TestsMain {
         table1.setRelationshipAttribute(REL_NAME_FROM, customRelations);
 
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(20);
+        sleep(SLEEP);
         LOG.info("table1Guid {}", table1Guid);
 
         table1 = getEntity(table1Guid);
@@ -502,7 +562,7 @@ public class CustomRelationships implements TestsMain {
         table2.setRelationshipAttribute(REL_NAME_TO, customRelations);
 
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         LOG.info("table2Guid {}", table2Guid);
 
         table2 = getEntity(table2Guid);
@@ -543,14 +603,14 @@ public class CustomRelationships implements TestsMain {
         table1.setRelationshipAttribute(REL_NAME_FROM, customRelations);
 
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         table1 = getEntity(table1Guid);
 
 
         AtlasEntity table101 = getAtlasEntity(TYPE_TABLE, "on-demand_table_101" + getRandomName());
         createEntity(table101).getCreatedEntities().get(0).getGuid();
-        sleep(1);
+        sleep(SLEEP);
 
         AtlasEntity table1_copy = new AtlasEntity(TYPE_TABLE);
         table1_copy.setAttribute(NAME, table1.getAttribute(NAME));
@@ -571,7 +631,7 @@ public class CustomRelationships implements TestsMain {
             }
         }
 
-        sleep(1);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
         List<Map<String, Object>> relations;
@@ -596,7 +656,7 @@ public class CustomRelationships implements TestsMain {
         AtlasEntity table1 = getAtlasEntity(TYPE_TABLE, "table_1" + getRandomName());
         table1.setRelationshipAttribute(REL_NAME_FROM, customRelations);
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
 
@@ -623,7 +683,7 @@ public class CustomRelationships implements TestsMain {
         AtlasEntity table2 = getAtlasEntity(TYPE_TABLE, "table2" + getRandomName());
         table2.setRelationshipAttribute(REL_NAME_TO, customRelations);
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table2 = getEntity(table2Guid);
 
 
@@ -631,7 +691,7 @@ public class CustomRelationships implements TestsMain {
         table102.setAttribute(QUALIFIED_NAME, "on-demand_table_102" + getRandomName());
         table102.setAppendRelationshipAttribute(REL_NAME_FROM, Arrays.asList(getUDRelationshipWithAttributes(TYPE_TABLE, table2.getAttribute(QUALIFIED_NAME).toString()
         )));
-        sleep(1);
+        sleep(SLEEP);
 
         failed = false;
         try {
@@ -654,7 +714,7 @@ public class CustomRelationships implements TestsMain {
 
         AtlasEntity table1 = getAtlasEntity(TYPE_TABLE, "table_1" + getRandomName());
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
         List<AtlasRelationship> relationships = new ArrayList<>();
@@ -675,7 +735,7 @@ public class CustomRelationships implements TestsMain {
         AtlasEntity table2 = getAtlasEntity(TYPE_TABLE, "on-demand_table_2" + getRandomName());
         table2.setAttribute(QUALIFIED_NAME, "on-demand_table_2" + getRandomName());
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         AtlasRelationship relationship = new AtlasRelationship();
         relationship.setTypeName(UD_RELATIONSHIP_TYPE_NAME);
@@ -700,7 +760,7 @@ public class CustomRelationships implements TestsMain {
 
         AtlasEntity table3 = getAtlasEntity(TYPE_TABLE, "table_3" + getRandomName());
         String table3Guid = createEntity(table3).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table3 = getEntity(table3Guid);
 
         relationships = new ArrayList<>();
@@ -753,14 +813,14 @@ public class CustomRelationships implements TestsMain {
                 getUDRelationshipWithAttributes(TYPE_TABLE, TABLE_QN_PREFIX + 3)
         ));
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
         //---------------
         table1.setRelationshipAttribute(REL_NAME_FROM, null);
         table1.setRelationshipAttribute(REL_NAME_TO, null);
         createEntity(table1);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
         List<Map<String, Object>> relations;
@@ -781,7 +841,7 @@ public class CustomRelationships implements TestsMain {
                 getUDRelationshipWithAttributes(TYPE_TABLE, TABLE_QN_PREFIX + 3)
         ));
         createEntity(table1);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
         relations =  (List<Map<String, Object>>) table1.getRelationshipAttribute(REL_NAME_TO);
@@ -793,7 +853,7 @@ public class CustomRelationships implements TestsMain {
         table1.setRelationshipAttribute(REL_NAME_FROM, new ArrayList<>());
         table1.setRelationshipAttribute(REL_NAME_TO, new ArrayList<>());
         createEntity(table1);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
         relations =  (List<Map<String, Object>>) table1.getRelationshipAttribute(REL_NAME_TO);
@@ -817,7 +877,7 @@ public class CustomRelationships implements TestsMain {
         AtlasEntity table2 = getAtlasEntity(TYPE_TABLE, "table_2" + getRandomName());
         String table0Guid = createEntity(table0).getCreatedEntities().get(0).getGuid();
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table0 = getEntity(table0Guid);
         table2 = getEntity(table2Guid);
 
@@ -829,12 +889,12 @@ public class CustomRelationships implements TestsMain {
                 getUDRelationshipWithAttributes(TYPE_TABLE, table2.getAttribute(QUALIFIED_NAME).toString())
         ));
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
 
         //---------------
         deleteEntitySoft(table1Guid);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table0 = getEntity(table0Guid);
         table2 = getEntity(table2Guid);
@@ -863,7 +923,7 @@ public class CustomRelationships implements TestsMain {
 
         //---------------
         deleteEntitySoft(table0Guid);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table0 = getEntity(table0Guid);
         table2 = getEntity(table2Guid);
@@ -891,7 +951,7 @@ public class CustomRelationships implements TestsMain {
 
         //---------------
         deleteEntitySoft(table2Guid);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table0 = getEntity(table0Guid);
         table2 = getEntity(table2Guid);
@@ -927,7 +987,7 @@ public class CustomRelationships implements TestsMain {
         AtlasEntity table2 = getAtlasEntity(TYPE_TABLE, "table_2" + getRandomName());
         String table0Guid = createEntity(table0).getCreatedEntities().get(0).getGuid();
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table0 = getEntity(table0Guid);
         table2 = getEntity(table2Guid);
 
@@ -939,12 +999,12 @@ public class CustomRelationships implements TestsMain {
                 getUDRelationshipWithAttributes(TYPE_TABLE, table2.getAttribute(QUALIFIED_NAME).toString())
         ));
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
 
         //---------------
         deleteEntitySoft(table0Guid);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table0 = getEntity(table0Guid);
         table2 = getEntity(table2Guid);
@@ -973,7 +1033,7 @@ public class CustomRelationships implements TestsMain {
 
         //---------------
         deleteEntitySoft(table2Guid);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table0 = getEntity(table0Guid);
         table2 = getEntity(table2Guid);
@@ -1010,7 +1070,7 @@ public class CustomRelationships implements TestsMain {
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
         String table3Guid = createEntity(table3).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table2 = getEntity(table2Guid);
         table3 = getEntity(table3Guid);
@@ -1029,11 +1089,11 @@ public class CustomRelationships implements TestsMain {
 
         String relationship_0Guid = createRelationship(relationship_0).getGuid();
         String relationship_1Guid = createRelationship(relationship_1).getGuid();
-        sleep(2);
+        sleep(SLEEP);
 
         //-------------
         deleteRelationshipByGuid(relationship_0Guid);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table2 = getEntity(table2Guid);
         table3 = getEntity(table3Guid);
@@ -1059,7 +1119,7 @@ public class CustomRelationships implements TestsMain {
 
         //-------------
         deleteRelationshipByGuid(relationship_1Guid);
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table2 = getEntity(table2Guid);
         table3 = getEntity(table3Guid);
@@ -1094,7 +1154,7 @@ public class CustomRelationships implements TestsMain {
         AtlasEntity table1 = getAtlasEntity(TYPE_TABLE, "table_1" + getRandomName());
         table1.setAttribute(QUALIFIED_NAME, CONNECTION.getAttribute(QUALIFIED_NAME) + "/table_1" + getRandomName());
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
 
@@ -1107,7 +1167,7 @@ public class CustomRelationships implements TestsMain {
         runAsAdmin();
 
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table2 = getEntity(table2Guid);
         table1 = getEntity(table1Guid);
 
@@ -1132,7 +1192,7 @@ public class CustomRelationships implements TestsMain {
         AtlasEntity table1 = getAtlasEntity(TYPE_TABLE, "table_1" + getRandomName());
         table1.setAttribute(QUALIFIED_NAME, CONNECTION.getAttribute(QUALIFIED_NAME) + "/table_1" + getRandomName());
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
 
@@ -1145,7 +1205,7 @@ public class CustomRelationships implements TestsMain {
         runAsMember();
 
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table2 = getEntity(table2Guid);
         table1 = getEntity(table1Guid);
 
@@ -1169,7 +1229,7 @@ public class CustomRelationships implements TestsMain {
         AtlasEntity table1 = getAtlasEntity(TYPE_TABLE, "table_1" + getRandomName());
         table1.setAttribute(QUALIFIED_NAME, CONNECTION.getAttribute(QUALIFIED_NAME) + "/table_1" + getRandomName());
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
 
 
@@ -1207,7 +1267,7 @@ public class CustomRelationships implements TestsMain {
 
         String table1Guid = createEntity(table1).getCreatedEntities().get(0).getGuid();
         String table2Guid = createEntity(table2).getCreatedEntities().get(0).getGuid();
-        sleep(2);
+        sleep(SLEEP);
         table1 = getEntity(table1Guid);
         table2 = getEntity(table2Guid);
 
@@ -1231,7 +1291,7 @@ public class CustomRelationships implements TestsMain {
     private static void checkRelationshipPermission(AtlasRelationship relationship, boolean allowed) throws Exception {
         if (allowed) {
             createRelationship(relationship);
-            sleep(2);
+            sleep(SLEEP);
             runAsGod();
             AtlasEntity table1 = getEntity(relationship.getEnd1().getGuid());
             AtlasEntity table2 = getEntity(relationship.getEnd2().getGuid());

@@ -10,6 +10,7 @@ import org.apache.atlas.model.audit.EntityAuditSearchResult;
 import org.apache.atlas.model.discovery.AtlasSearchResult;
 import com.tests.main.IndexSearchParams;
 import org.apache.atlas.model.instance.AtlasEntity;
+import org.apache.atlas.model.instance.AtlasRelationship;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 import org.apache.commons.collections.CollectionUtils;
@@ -52,23 +53,31 @@ public class OKClient {
     private static String URL_UPSERT_BM_BULK = BASE_URL + "/entity/guid/%s/businessmetadata";
 
     private static String URL_REPAIR_ASSET = BASE_URL + "/entity/guid/%s/repairindex";
+
     private static String URL_REPAIR_ASSETS = BASE_URL + "/entity/guid/bulk/repairindex";
 
     private static String URL_INDEX_SEARCH = BASE_URL + "/search/indexsearch";
 
+    private static String URL_RELATIONSHIP_BULK = BASE_URL + "/relationship/bulk";
+    private static String URL_RELATIONSHIP = BASE_URL + "/relationship";
+    private static String URL_RELATIONSHIP_DELETE_GUID = BASE_URL + "/relationship/guid/%s";
+
     private static OkHttpClient finalClient = null;
 
     public static String GOD, ADMIN, MEMBER, GUEST;
+
+    private static long TIMEOUT  = 60000;
+    private static TimeUnit TIME_UNIT = TimeUnit.SECONDS;
 
     public static OkHttpClient getClient() {
         if (finalClient == null) {
             synchronized (OKClient.class) {
                 if (finalClient == null) {
                     finalClient = new OkHttpClient.Builder()
-                            .connectTimeout(60, TimeUnit.SECONDS)
-                            .readTimeout(60, TimeUnit.SECONDS)
-                            .writeTimeout(60, TimeUnit.SECONDS)
-                            .callTimeout(60, TimeUnit.SECONDS)
+                            .connectTimeout(TIMEOUT, TIME_UNIT)
+                            .readTimeout(TIMEOUT, TIME_UNIT)
+                            .writeTimeout(TIMEOUT, TIME_UNIT)
+                            .callTimeout(TIMEOUT, TIME_UNIT)
                             .build();
                 }
             }
@@ -267,6 +276,24 @@ public class OKClient {
         Request request = getRequestPOST(URL_REPAIR_ASSETS, assetGuids);
 
         executeRequest(request, null);
+    }
+
+    public AtlasRelationship createRelationship(AtlasRelationship relationship) throws Exception {
+        Request request = getRequestPOST(URL_RELATIONSHIP, relationship);
+
+        return executeRequest(request, AtlasRelationship.class);
+    }
+
+    public void deleteRelationshipByGuid(String relationshipGuid) throws Exception {
+        Request request = getRequestDELETE(String.format(URL_RELATIONSHIP_DELETE_GUID, relationshipGuid));
+
+        executeRequest(request, null);
+    }
+
+    public List<AtlasRelationship> createRelationships(List<AtlasRelationship> relationships) throws Exception {
+        Request request = getRequestPOST(URL_RELATIONSHIP_BULK, relationships);
+
+        return executeRequest(request, List.class);
     }
 
     public void addOrUpdateCMAttr(String assetGuid, String bmName, Map<String, Object> bm) throws Exception {

@@ -217,8 +217,8 @@ public class TestUtil {
         return getAtlasClient().deleteEntityByGuid(guid, "PURGE");
     }
 
-    public static void deleteRelationshipByGuid(String guid) throws Exception {
-        //getAtlasClient().deleteRelationshipByGuid(guid);
+    public static void deleteRelationshipByGuid(String relationshipGuid) throws Exception {
+        getAtlasClient().deleteRelationshipByGuid(relationshipGuid);
     }
 
     public static void deleteRelationshipByGuids(List<String> guids) throws Exception {
@@ -271,13 +271,11 @@ public class TestUtil {
     }
 
     public static AtlasRelationship createRelationship(AtlasRelationship relationship) throws Exception {
-        //return getAtlasClient().createRelationship(relationship);
-        return null;
+        return getAtlasClient().createRelationship(relationship);
     }
 
     public static List<AtlasRelationship> createRelationships(List<AtlasRelationship> relationships) throws Exception {
-        //return getAtlasClient().createRelationships(relationships);
-        return null;
+        return getAtlasClient().createRelationships(relationships);
     }
 
     public static AtlasRelationship updateRelationship(AtlasRelationship relationship) throws Exception {

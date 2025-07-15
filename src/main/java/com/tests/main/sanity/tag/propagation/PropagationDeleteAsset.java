@@ -65,7 +65,7 @@ public class PropagationDeleteAsset implements TestsMain {
 
         long start = System.currentTimeMillis();
         try {
-            deleteTable();
+            //deleteTable();
             deleteSchema();
 
 

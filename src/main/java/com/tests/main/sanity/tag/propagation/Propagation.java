@@ -57,9 +57,9 @@ public class Propagation implements TestsMain {
 
         long start = System.currentTimeMillis();
         try {
-            //tableColumnAddRemove();
+            tableColumnAddRemove();
 
-            //columnTableAddRemoveInverse();
+            columnTableAddRemoveInverse();
 
             schemaAddRemove();
 
