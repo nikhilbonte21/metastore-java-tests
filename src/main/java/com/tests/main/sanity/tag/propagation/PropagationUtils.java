@@ -2,8 +2,11 @@ package com.tests.main.sanity.tag.propagation;
 
 import org.apache.atlas.model.instance.AtlasClassification;
 import org.apache.atlas.model.instance.AtlasEntity;
+import org.apache.atlas.model.tasks.AtlasTask;
+import org.apache.atlas.model.typedef.AtlasClassificationDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,8 +14,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static com.tests.main.utils.TestUtil.createClassification;
+import static com.tests.main.utils.TestUtil.createClassificationDefs;
 import static com.tests.main.utils.TestUtil.getEntity;
+import static com.tests.main.utils.TestUtil.getRandomName;
 import static com.tests.main.utils.TestUtil.getTagDefs;
 import static com.tests.main.utils.TestUtil.mapOf;
 import static com.tests.main.utils.TestUtil.searchTasks;
@@ -30,7 +37,7 @@ public class PropagationUtils {
     public static final String TASK_TYPE_REFRESH_PROP = "CLASSIFICATION_REFRESH_PROPAGATION";
     public static final String TASK_TYPE_DELETE_PROP = "CLASSIFICATION_PROPAGATION_DELETE";
 
-    public static String getTagTypeDef() throws RuntimeException {
+    public static List<String> getTagTypeDefs(int expectedCount) throws RuntimeException {
         AtlasTypesDef typesDef = null;
         try {
             typesDef = getTagDefs();
@@ -38,34 +45,69 @@ public class PropagationUtils {
             throw new RuntimeException(e);
         }
 
-        assertTrue("Sufficient tags not found", typesDef != null
-                && CollectionUtils.isNotEmpty(typesDef.getClassificationDefs())
-                && typesDef.getClassificationDefs().size() >= 1);
+        List<String> tagTypeNames = new ArrayList<>(expectedCount);
 
-        String TAG_TYPE_NAME = typesDef.getClassificationDefs().get(0).getName();
+        if (typesDef == null
+                || CollectionUtils.isEmpty(typesDef.getClassificationDefs())
+                || typesDef.getClassificationDefs().size() < expectedCount) {
+
+            LOG.warn("Sufficient tags not found, creating tags");
+
+            List<AtlasClassificationDef> tags = new ArrayList<>(expectedCount);
+            for (int i = 0; i < expectedCount; i++) {
+                AtlasClassificationDef classificationDef = new AtlasClassificationDef();
+                classificationDef.setDisplayName("tag_" + i + "_" + getRandomName());
+                classificationDef.setName("tag_" + i + "_" + getRandomName());
+
+                tags.add(classificationDef);
+            }
+
+            try {
+                tagTypeNames = createClassificationDefs(tags).stream().map(x -> x.getName()).collect(Collectors.toList());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            LOG.info("Created new tag types");
+        } else {
+
+            tagTypeNames = typesDef.getClassificationDefs().subList(0, expectedCount).stream().map(x -> x.getName()).collect(Collectors.toList());
+
+            LOG.info("Fetched existing tag types");
+        }
 
         LOG.info("\n");
         LOG.info("====================================");
-        LOG.info("TAG_TYPE_NAME : {}", TAG_TYPE_NAME);
+        LOG.info("tagTypeNames : {}", tagTypeNames);
         LOG.info("====================================");
         LOG.info("\n");
 
-        return TAG_TYPE_NAME;
+        return tagTypeNames;
     }
 
-    public static void waitForPropagationTasksToComplete(String entityGuid, String taskType) throws Exception {
+    public static List<AtlasTask> getTask(String entityGuid, String taskType, String taskStatus, long currentMillis) throws Exception {
+        Map<String, Object> taskSearchRequest = createTaskSearchRequest(entityGuid, taskType, taskStatus, currentMillis);
+
+        return (List<AtlasTask>) searchTasks(taskSearchRequest).get("tasks");
+    }
+
+    public static void waitForPropagationTasksToCompleteDelayed(String entityGuid, String taskType) throws Exception {
+        sleep(5000);
+        waitForPropagationTasksToComplete(entityGuid, taskType);
+    }
+
+    public static void waitForPropagationTasksToComplete(String entityGuid, String taskType) throws  Exception {
         LOG.info("Waiting for propagation tasks to complete for entity: {}", entityGuid);
 
         int maxAttempts = 24; // Maximum number of attempts // 2 minutes
         long waitInterval = 5000; // 5 seconds between checks
         int attempts = 0;
-        sleep(5000);
 
         while (attempts < maxAttempts) {
             attempts++;
             try {
                 // Create task search request based on the curl example
-                Map<String, Object> taskSearchRequest = createTaskSearchRequest(entityGuid, taskType);
+                Map<String, Object> taskSearchRequest = createTaskSearchRequest(entityGuid, taskType, "PENDING");
                 LOG.info("Finding pending task for entityGuid: {}, taskType {} attempts", entityGuid, taskType);
 
                 // Search for tasks
@@ -101,7 +143,7 @@ public class PropagationUtils {
         LOG.warn("Reached maximum attempts ({}) waiting for propagation tasks to complete", maxAttempts);
     }
 
-    public static Map<String, Object> createTaskSearchRequest(String entityGuid, String taskType) throws Exception {
+    public static Map<String, Object> createTaskSearchRequest(String entityGuid, String taskType, String taskStatus, long timeInMillis) throws Exception {
         Map<String, Object> request = new HashMap<>();
         Map<String, Object> dsl = mapOf("size", 1);
 
@@ -111,9 +153,21 @@ public class PropagationUtils {
         // Set query
         List<Map<String, Object>> mustConditions = new ArrayList<>();
 
-        mustConditions.add(mapOf("term", mapOf("__task_type", taskType)));
-        mustConditions.add(mapOf("term", mapOf("__task_entityGuid", entityGuid)));
-        mustConditions.add(mapOf("term", mapOf("__task_status.keyword", "PENDING")));
+        if (StringUtils.isNotEmpty(taskType)) {
+            mustConditions.add(mapOf("term", mapOf("__task_type", taskType)));
+        }
+
+        if (StringUtils.isNotEmpty(entityGuid)) {
+            mustConditions.add(mapOf("term", mapOf("__task_entityGuid", entityGuid)));
+        }
+
+        if (StringUtils.isNotEmpty(taskStatus)) {
+            mustConditions.add(mapOf("term", mapOf("__task_status.keyword", taskStatus)));
+        }
+
+        if (timeInMillis > 0) {
+            mustConditions.add(mapOf("range", mapOf("created", mapOf("gt", timeInMillis))));
+        }
 
         dsl.put("query", mapOf("bool", mapOf("must", mustConditions)));
 
@@ -121,8 +175,12 @@ public class PropagationUtils {
         return request;
     }
 
-    public static void verifyEntityHasTag(String assetGuid, String expectedTagName) throws Exception {
-        LOG.info("Verifying entity {} has tag {}", assetGuid, expectedTagName);
+    public static Map<String, Object> createTaskSearchRequest(String entityGuid, String taskType, String taskStatus) throws Exception {
+        return createTaskSearchRequest(entityGuid, taskType, taskStatus, 0);
+    }
+
+    public static void verifyEntityHasTags(String assetGuid, List<String> expectedTagNames) throws Exception {
+        LOG.info("Verifying entity {} has tags {}", assetGuid, expectedTagNames);
 
         // Fetch the entity
         AtlasEntity entity = getEntity(assetGuid);
@@ -131,19 +189,17 @@ public class PropagationUtils {
         List<AtlasClassification> classifications = entity.getClassifications();
 
         assertTrue("Entity should have tags", CollectionUtils.isNotEmpty(classifications));
-        assertEquals(1, classifications.size());
+        assertEquals(expectedTagNames.size(), classifications.size());
 
-        // Check if the expected tag is present
-        boolean hasExpectedTag = classifications.stream()
-                .anyMatch(classification -> expectedTagName.equals(classification.getTypeName()));
+        // Check if the expected tags are present
+        boolean hasExpectedTags = classifications.stream()
+                .anyMatch(classification -> expectedTagNames.contains(classification.getTypeName()));
 
-        assertTrue("Entity should have tag with typeName: " + expectedTagName, hasExpectedTag);
-
-        LOG.info("Successfully verified entity has expected tags: {}", expectedTagName);
+        assertTrue("Entity should have tags with typeName: " + expectedTagNames, hasExpectedTags);
     }
 
-    public static void verifyEntityNotHaveTag(String assetGuid, String unExpectedTagName) throws Exception {
-        LOG.info("Verifying entity {} not have has tag {}", assetGuid, unExpectedTagName);
+    public static void verifyEntityNotHaveTags(String assetGuid, List<String> unExpectedTagNames) throws Exception {
+        LOG.info("Verifying entity {} not have has tags {}", assetGuid, unExpectedTagNames);
 
         // Fetch the entity
         AtlasEntity entity = getEntity(assetGuid);
@@ -153,13 +209,12 @@ public class PropagationUtils {
 
         if (CollectionUtils.isNotEmpty(classifications)) {
             boolean hasExpectedTag = classifications.stream()
-                    .anyMatch(classification -> unExpectedTagName.equals(classification.getTypeName()));
+                    .anyMatch(classification -> unExpectedTagNames.contains(classification.getTypeName()));
 
-            assertFalse("Entity should not tag with typeName: " + unExpectedTagName, hasExpectedTag);
+            assertFalse("Entity should not tags: " + unExpectedTagNames, hasExpectedTag);
 
         }
 
-        LOG.info("Successfully verified entity has expected tags: {}", unExpectedTagName);
+        LOG.info("Successfully verified entity does not have tags: {}", unExpectedTagNames);
     }
-
 }

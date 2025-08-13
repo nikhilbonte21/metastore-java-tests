@@ -1,7 +1,6 @@
 package com.tests.main.sanity.tag.propagation;
 
 import com.tests.main.Test;
-import com.tests.main.TestRunner;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasClassification;
@@ -9,18 +8,17 @@ import org.apache.atlas.model.instance.AtlasEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.TASK_TYPE_ADD_PROP;
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.TASK_TYPE_DELETE_PROP;
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.TASK_TYPE_REFRESH_PROP;
-import static com.tests.main.sanity.tag.propagation.PropagationUtils.getTagTypeDef;
-import static com.tests.main.sanity.tag.propagation.PropagationUtils.verifyEntityHasTag;
-import static com.tests.main.sanity.tag.propagation.PropagationUtils.verifyEntityNotHaveTag;
-import static com.tests.main.sanity.tag.propagation.PropagationUtils.waitForPropagationTasksToComplete;
+import static com.tests.main.sanity.tag.propagation.PropagationUtils.getTagTypeDefs;
+import static com.tests.main.sanity.tag.propagation.PropagationUtils.verifyEntityHasTags;
+import static com.tests.main.sanity.tag.propagation.PropagationUtils.verifyEntityNotHaveTags;
+import static com.tests.main.sanity.tag.propagation.PropagationUtils.waitForPropagationTasksToCompleteDelayed;
 import static com.tests.main.utils.TestUtil.TYPE_COLUMN;
 import static com.tests.main.utils.TestUtil.TYPE_PROCESS;
 import static com.tests.main.utils.TestUtil.TYPE_TABLE;
@@ -39,21 +37,16 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
     private static long SLEEP = 2000;
 
-    private static String TAG_TYPE_NAME;
-
     private static String table_guid;
     private static String column_0_guid;
     private static String column_1_guid;
     private static String process_0_guid;
     private static String process_1_guid;
 
+    private static List<String> tagTypeNames;
+
     static {
-        TAG_TYPE_NAME = getTagTypeDef();
-        try {
-            createDataset();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        tagTypeNames = getTagTypeDefs(1);
     }
 
     public static void main(String[] args) throws Exception {
@@ -72,6 +65,8 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
         long start = System.currentTimeMillis();
         try {
+
+            createDataset();
 
             // ---------------------------
 
@@ -115,20 +110,20 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
         // Attach tag to table
         table = getEntity(table_guid);
-        table.setClassifications(Collections.singletonList(new AtlasClassification(TAG_TYPE_NAME)));
+        table.setClassifications(Collections.singletonList(new AtlasClassification(tagTypeNames.get(0))));
         updateEntity(table);
         sleep(SLEEP);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(table_guid, TASK_TYPE_ADD_PROP);
+        waitForPropagationTasksToCompleteDelayed(table_guid, TASK_TYPE_ADD_PROP);
 
         sleep(SLEEP);
         // Verify the column has received the expected classification
-        verifyEntityHasTag(table_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_1_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(process_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(process_1_guid, TAG_TYPE_NAME);
+        verifyEntityHasTags(table_guid, tagTypeNames);
+        verifyEntityHasTags(column_0_guid, tagTypeNames);
+        verifyEntityHasTags(column_1_guid, tagTypeNames);
+        verifyEntityHasTags(process_0_guid, tagTypeNames);
+        verifyEntityHasTags(process_1_guid, tagTypeNames);
 
         LOG.info("<< createDataset");
     }
@@ -140,23 +135,23 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
         AtlasEntity table = getEntity(table_guid);
 
-        AtlasClassification tag = new AtlasClassification(TAG_TYPE_NAME);
+        AtlasClassification tag = new AtlasClassification(tagTypeNames.get(0));
         tag.setPropagate(true);
         tag.setRestrictPropagationThroughLineage(true);
         tag.setRestrictPropagationThroughHierarchy(false);
 
         table.setClassifications(Collections.singletonList(tag));
-        updateEntity(table);
+        createEntitiesBulk(table);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(table_guid, TASK_TYPE_REFRESH_PROP);
+        waitForPropagationTasksToCompleteDelayed(table_guid, TASK_TYPE_REFRESH_PROP);
 
         // Verify the column has received the expected classification
-        verifyEntityHasTag(table_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_1_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(process_0_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(process_1_guid, TAG_TYPE_NAME);
+        verifyEntityHasTags(table_guid, tagTypeNames);
+        verifyEntityHasTags(column_0_guid, tagTypeNames);
+        verifyEntityHasTags(column_1_guid, tagTypeNames);
+        verifyEntityNotHaveTags(process_0_guid, tagTypeNames);
+        verifyEntityNotHaveTags(process_1_guid, tagTypeNames);
 
         LOG.info("<< updateTableTagDisableLineage");
     }
@@ -167,7 +162,7 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
         AtlasEntity table = getEntity(table_guid);
 
-        AtlasClassification tag = new AtlasClassification(TAG_TYPE_NAME);
+        AtlasClassification tag = new AtlasClassification(tagTypeNames.get(0));
         tag.setPropagate(true);
         tag.setRestrictPropagationThroughLineage(false);
         tag.setRestrictPropagationThroughHierarchy(true);
@@ -176,14 +171,14 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
         updateEntity(table);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(table_guid, TASK_TYPE_REFRESH_PROP);
+        waitForPropagationTasksToCompleteDelayed(table_guid, TASK_TYPE_REFRESH_PROP);
 
         // Verify the column has received the expected classification
-        verifyEntityHasTag(table_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(column_0_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(column_1_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(process_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(process_1_guid, TAG_TYPE_NAME);
+        verifyEntityHasTags(table_guid, tagTypeNames);
+        verifyEntityNotHaveTags(column_0_guid, tagTypeNames);
+        verifyEntityNotHaveTags(column_1_guid, tagTypeNames);
+        verifyEntityHasTags(process_0_guid, tagTypeNames);
+        verifyEntityHasTags(process_1_guid, tagTypeNames);
 
         LOG.info("<< updateTableTagToggleConfs");
     }
@@ -195,7 +190,7 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
         AtlasEntity table = getEntity(table_guid);
 
-        AtlasClassification tag = new AtlasClassification(TAG_TYPE_NAME);
+        AtlasClassification tag = new AtlasClassification(tagTypeNames.get(0));
         tag.setPropagate(true);
         tag.setRestrictPropagationThroughLineage(true);
         tag.setRestrictPropagationThroughHierarchy(false);
@@ -204,14 +199,14 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
         updateEntity(table);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(table_guid, TASK_TYPE_REFRESH_PROP);
+        waitForPropagationTasksToCompleteDelayed(table_guid, TASK_TYPE_REFRESH_PROP);
 
         // Verify the column has received the expected classification
-        verifyEntityHasTag(table_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_1_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(process_0_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(process_1_guid, TAG_TYPE_NAME);
+        verifyEntityHasTags(table_guid, tagTypeNames);
+        verifyEntityHasTags(column_0_guid, tagTypeNames);
+        verifyEntityHasTags(column_1_guid, tagTypeNames);
+        verifyEntityNotHaveTags(process_0_guid, tagTypeNames);
+        verifyEntityNotHaveTags(process_1_guid, tagTypeNames);
 
         LOG.info("<< updateTableTagToggleConfs2");
     }
@@ -223,7 +218,7 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
         AtlasEntity table = getEntity(table_guid);
 
-        AtlasClassification tag = new AtlasClassification(TAG_TYPE_NAME);
+        AtlasClassification tag = new AtlasClassification(tagTypeNames.get(0));
         tag.setPropagate(true);
         tag.setRestrictPropagationThroughLineage(false);
         tag.setRestrictPropagationThroughHierarchy(false);
@@ -232,14 +227,14 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
         updateEntity(table);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(table_guid, TASK_TYPE_REFRESH_PROP);
+        waitForPropagationTasksToCompleteDelayed(table_guid, TASK_TYPE_REFRESH_PROP);
 
         // Verify the column has received the expected classification
-        verifyEntityHasTag(table_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_1_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(process_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(process_1_guid, TAG_TYPE_NAME);
+        verifyEntityHasTags(table_guid, tagTypeNames);
+        verifyEntityHasTags(column_0_guid, tagTypeNames);
+        verifyEntityHasTags(column_1_guid, tagTypeNames);
+        verifyEntityHasTags(process_0_guid, tagTypeNames);
+        verifyEntityHasTags(process_1_guid, tagTypeNames);
 
         LOG.info("<< enableAllConfs");
     }
@@ -250,21 +245,21 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
         AtlasEntity table = getEntity(table_guid);
 
-        AtlasClassification tag = new AtlasClassification(TAG_TYPE_NAME);
+        AtlasClassification tag = new AtlasClassification(tagTypeNames.get(0));
         tag.setPropagate(false);
 
         table.setClassifications(Collections.singletonList(tag));
         updateEntity(table);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(table_guid, TASK_TYPE_DELETE_PROP);
+        waitForPropagationTasksToCompleteDelayed(table_guid, TASK_TYPE_DELETE_PROP);
 
         // Verify the column has received the expected classification
-        verifyEntityHasTag(table_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(column_0_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(column_1_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(process_0_guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(process_1_guid, TAG_TYPE_NAME);
+        verifyEntityHasTags(table_guid, tagTypeNames);
+        verifyEntityNotHaveTags(column_0_guid, tagTypeNames);
+        verifyEntityNotHaveTags(column_1_guid, tagTypeNames);
+        verifyEntityNotHaveTags(process_0_guid, tagTypeNames);
+        verifyEntityNotHaveTags(process_1_guid, tagTypeNames);
 
         LOG.info("<< disablePropagation");
     }
@@ -276,14 +271,14 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
 
         AtlasEntity table = getEntity(table_guid);
 
-        AtlasClassification tag = new AtlasClassification(TAG_TYPE_NAME);
+        AtlasClassification tag = new AtlasClassification(tagTypeNames.get(0));
         tag.setPropagate(true);
 
         table.setClassifications(Collections.singletonList(tag));
         updateEntity(table);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(table_guid, TASK_TYPE_ADD_PROP);
+        waitForPropagationTasksToCompleteDelayed(table_guid, TASK_TYPE_ADD_PROP);
         /*
         {
             "type": "CLASSIFICATION_PROPAGATION_ADD",
@@ -307,11 +302,11 @@ public class PropagationSwitchRestrictConfs implements TestsMain {
         * */
 
         // Verify the column has received the expected classification
-        verifyEntityHasTag(table_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column_1_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(process_0_guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(process_1_guid, TAG_TYPE_NAME);
+        verifyEntityHasTags(table_guid, tagTypeNames);
+        verifyEntityHasTags(column_0_guid, tagTypeNames);
+        verifyEntityHasTags(column_1_guid, tagTypeNames);
+        verifyEntityHasTags(process_0_guid, tagTypeNames);
+        verifyEntityHasTags(process_1_guid, tagTypeNames);
 
         LOG.info("<< reEnablePropagation");
     }

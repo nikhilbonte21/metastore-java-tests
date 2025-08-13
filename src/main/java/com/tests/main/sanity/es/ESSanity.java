@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.tests.main.sanity.tag.propagation.PropagationUtils.getTagTypeDef;
+import static com.tests.main.sanity.tag.propagation.PropagationUtils.getTagTypeDefs;
 import static com.tests.main.utils.TestUtil.TYPE_CONNECTION;
 import static com.tests.main.utils.TestUtil.TYPE_TABLE;
 import static com.tests.main.utils.TestUtil.cleanUpAll;
@@ -88,7 +88,7 @@ public class ESSanity implements TestsMain {
     private static void createTableWithTag() throws Exception {
         LOG.info(">> createTableWithTag");
 
-        String tagTypeName = getTagTypeDef();
+        String tagTypeName = getTagTypeDefs(1).get(0);
 
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "table_0_");
         table.setClassifications(Arrays.asList(new AtlasClassification(tagTypeName)));

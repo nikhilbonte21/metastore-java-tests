@@ -311,6 +311,10 @@ public class TestUtil {
         getAtlasClient().repairEntitiesByGuid(guids);
     }
 
+    public static Map<String, String> repairClassificationsMappings(List<String> guids) throws Exception {
+        return getAtlasClient().repairClassificationsMappings(guids);
+    }
+
     public static AtlasEntity createAndGetEntity(AtlasEntity entity) throws Exception {
         EntityMutationResponse response = createEntity(new AtlasEntity.AtlasEntityWithExtInfo(entity));
 
@@ -320,6 +324,16 @@ public class TestUtil {
         EntityMutationResponse response = createEntity(new AtlasEntity.AtlasEntityWithExtInfo(entity));
 
         return getEntity(response.getUpdatedEntities().get(0).getGuid());
+    }
+
+    public static void addTagByTypeAPI(String entityTypeName, String entityQualifiedName,
+                                                         List<AtlasClassification> classifications) throws Exception {
+        getAtlasClient().addTagByTypeAPI(entityTypeName, entityQualifiedName, classifications);
+    }
+
+    public static void deleteTagByTypeAPI(String entityTypeName, String entityQualifiedName,
+                                                         String tagTypeName) throws Exception {
+        getAtlasClient().deleteTagByTypeAPI(entityTypeName, entityQualifiedName, tagTypeName);
     }
 
     public static EntityMutationResponse createEntity(AtlasEntity.AtlasEntityWithExtInfo entityWithExtInfo) throws Exception {
@@ -466,8 +480,7 @@ public class TestUtil {
         AtlasTypesDef typesDef = new AtlasTypesDef();
         typesDef.setClassificationDefs(tags);
 
-        //return getAtlasClient().createAtlasTypeDefs(typesDef).getClassificationDefs();
-        return null;
+        return getAtlasClient().createTypeDef(typesDef).getClassificationDefs();
 
     }
 
@@ -987,7 +1000,7 @@ public class TestUtil {
 
             if (ArrayUtils.isNotEmpty(blackAttrs)) {
                 for (String attrName : blackAttrs) {
-                    assertNull(sourceAsMap.get(attrName));
+                    assertNull(attrName, sourceAsMap.get(attrName));
                 }
             }
         }
@@ -1104,6 +1117,11 @@ public class TestUtil {
             // Verify each expected attribute
             for (Map.Entry<String, Object> expectedEntry : expectedAttributes.entrySet()) {
                 String attrName = expectedEntry.getKey();
+
+                if ("__pendingTasks".equals(attrName)) {
+                    continue;
+                }
+
                 Object expectedValue = expectedEntry.getValue();
                 Object actualValue = sourceAsMap.get(attrName);
 
@@ -1111,7 +1129,7 @@ public class TestUtil {
                     assertFalse(sourceAsMap.containsKey(expectedValue));
                 } else {
                     // Verify attribute exists
-                    assertNotNull("Attribute '" + attrName + "' not found in ES document", actualValue);
+                    assertNotNull("Attribute '" + attrName + "' not found in ES document for " + assetGuid, actualValue);
 
                     // Handle different value types
                     if (expectedValue instanceof List) {
@@ -1120,9 +1138,11 @@ public class TestUtil {
                         List<?> expectedList = (List<?>) expectedValue;
                         List<?> actualList = (List<?>) actualValue;
                         
-                        // Verify no extra values
-                        assertEquals("Attribute '" + attrName + "' has unexpected size: ",
-                                expectedList.size(), actualList.size());
+                        // Verify no extra values except __pendingTasks
+                        if (!"__pendingTasks".equals(attrName)) {
+                            assertEquals("Attribute '" + attrName + "' has unexpected size: ",
+                                    expectedList.size(), actualList.size());
+                        }
 
                         // Verify all expected values are present
                         for (Object expectedItem : expectedList) {

@@ -1,7 +1,6 @@
 package com.tests.main.sanity.tag.propagation;
 
 import com.tests.main.Test;
-import com.tests.main.TestRunner;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasClassification;
@@ -11,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.*;
@@ -35,10 +35,10 @@ public class Propagation implements TestsMain {
 
     private static long SLEEP = 2000;
 
-    private static String TAG_TYPE_NAME;
+    private static List<String> tagTypeNames;
 
     static {
-        TAG_TYPE_NAME = getTagTypeDef();
+        tagTypeNames = getTagTypeDefs(1);
     }
 
     public static void main(String[] args) throws Exception {
@@ -76,7 +76,7 @@ public class Propagation implements TestsMain {
 
         // Create a test table with tags
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table" + getRandomName());
-        table.setClassifications(Arrays.asList(new AtlasClassification(TAG_TYPE_NAME)));
+        table.setClassifications(Arrays.asList(new AtlasClassification(tagTypeNames.get(0))));
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
         sleep(SLEEP);
 
@@ -93,7 +93,7 @@ public class Propagation implements TestsMain {
 
         // Create a test table with tags
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table" + getRandomName());
-        table.setClassifications(Arrays.asList(new AtlasClassification(TAG_TYPE_NAME)));
+        table.setClassifications(Arrays.asList(new AtlasClassification(tagTypeNames.get(0))));
         String tableGuid = createEntity(table).getCreatedEntities().get(0).getGuid();
         sleep(SLEEP);
 
@@ -109,7 +109,7 @@ public class Propagation implements TestsMain {
         LOG.info(">> schemaAddRemove");
 
         AtlasEntity database = getAtlasEntity(TYPE_DATABASE, "test_database" + getRandomName());
-        database.setClassifications(Arrays.asList(new AtlasClassification(TAG_TYPE_NAME)));
+        database.setClassifications(Arrays.asList(new AtlasClassification(tagTypeNames.get(0))));
 
         AtlasEntity schema = getAtlasEntity(TYPE_SCHEMA, "test_schema" + getRandomName());
         AtlasEntity table = getAtlasEntity(TYPE_TABLE, "test_table" + getRandomName());
@@ -149,7 +149,7 @@ public class Propagation implements TestsMain {
         sleep(SLEEP);
 
         // Wait for classification propagation tasks to complete
-        //waitForPropagationTasksToComplete(columnGuid, TASK_TYPE_ADD_PROP);
+        waitForPropagationTasksToCompleteDelayed(columnGuid, TASK_TYPE_ADD_PROP);
         waitForPropagationTasksToComplete(tableGuid, TASK_TYPE_ADD_PROP);
 
         /*
@@ -174,7 +174,7 @@ public class Propagation implements TestsMain {
 
         sleep(SLEEP);
         // Verify the column has received the expected classification
-        verifyEntityHasTag(columnGuid, TAG_TYPE_NAME);
+        verifyEntityHasTags(columnGuid, tagTypeNames);
 
         return columnGuid;
     }
@@ -188,11 +188,10 @@ public class Propagation implements TestsMain {
         sleep(SLEEP);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(tableGuid, TASK_TYPE_REFRESH_PROP);
+        waitForPropagationTasksToCompleteDelayed(tableGuid, TASK_TYPE_REFRESH_PROP);
 
-        sleep(SLEEP);
         // Verify the column has received the expected classification
-        verifyEntityNotHaveTag(columnGuid, TAG_TYPE_NAME);
+        verifyEntityNotHaveTags(columnGuid, tagTypeNames);
 
         return columnGuid;
     }
@@ -206,11 +205,11 @@ public class Propagation implements TestsMain {
 
         // Wait for classification propagation tasks to complete
         //waitForPropagationTasksToComplete(columnGuid, TASK_TYPE_ADD_PROP);
-        waitForPropagationTasksToComplete(tableGuid, TASK_TYPE_ADD_PROP);
+        waitForPropagationTasksToCompleteDelayed(tableGuid, TASK_TYPE_ADD_PROP);
 
         sleep(SLEEP);
         // Verify the column has received the expected classification
-        verifyEntityHasTag(columnGuid, TAG_TYPE_NAME);
+        verifyEntityHasTags(columnGuid, tagTypeNames);
 
         return columnGuid;
     }
@@ -225,11 +224,11 @@ public class Propagation implements TestsMain {
         sleep(SLEEP);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(tableGuid, TASK_TYPE_REFRESH_PROP);
+        waitForPropagationTasksToCompleteDelayed(tableGuid, TASK_TYPE_REFRESH_PROP);
 
         sleep(SLEEP);
         // Verify the column has received the expected classification
-        verifyEntityNotHaveTag(columnGuid, TAG_TYPE_NAME);
+        verifyEntityNotHaveTags(columnGuid, tagTypeNames);
 
         return columnGuid;
     }
@@ -245,7 +244,7 @@ public class Propagation implements TestsMain {
 
         // Wait for classification propagation tasks to complete
         //waitForPropagationTasksToComplete(columnGuid, TASK_TYPE_ADD_PROP);
-        waitForPropagationTasksToComplete(databaseGuid, TASK_TYPE_ADD_PROP);
+        waitForPropagationTasksToCompleteDelayed(databaseGuid, TASK_TYPE_ADD_PROP);
 
         /*
         {
@@ -292,13 +291,13 @@ public class Propagation implements TestsMain {
 
         sleep(SLEEP);
 
-        verifyEntityHasTag(databaseGuid, TAG_TYPE_NAME);
+        verifyEntityHasTags(databaseGuid, tagTypeNames);
 
         // Verify the assets has received the expected classification
-        verifyEntityHasTag(schemaGuid, TAG_TYPE_NAME);
-        verifyEntityHasTag(tableGuid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column0_Guid, TAG_TYPE_NAME);
-        verifyEntityHasTag(column1_Guid, TAG_TYPE_NAME);
+        verifyEntityHasTags(schemaGuid, tagTypeNames);
+        verifyEntityHasTags(tableGuid, tagTypeNames);
+        verifyEntityHasTags(column0_Guid, tagTypeNames);
+        verifyEntityHasTags(column1_Guid, tagTypeNames);
     }
 
     private void updateSchemaToUnlinkDatabase(String databaseGuid, String schemaGuid,
@@ -312,17 +311,17 @@ public class Propagation implements TestsMain {
         sleep(SLEEP);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToComplete(databaseGuid, TASK_TYPE_REFRESH_PROP);
+        waitForPropagationTasksToCompleteDelayed(databaseGuid, TASK_TYPE_REFRESH_PROP);
 
         sleep(SLEEP);
 
-        verifyEntityHasTag(databaseGuid, TAG_TYPE_NAME);
+        verifyEntityHasTags(databaseGuid, tagTypeNames);
 
         // Verify the assets has received the expected classification
-        verifyEntityNotHaveTag(schemaGuid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(tableGuid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(column0_Guid, TAG_TYPE_NAME);
-        verifyEntityNotHaveTag(column1_Guid, TAG_TYPE_NAME);
+        verifyEntityNotHaveTags(schemaGuid, tagTypeNames);
+        verifyEntityNotHaveTags(tableGuid, tagTypeNames);
+        verifyEntityNotHaveTags(column0_Guid, tagTypeNames);
+        verifyEntityNotHaveTags(column1_Guid, tagTypeNames);
     }
 
 }

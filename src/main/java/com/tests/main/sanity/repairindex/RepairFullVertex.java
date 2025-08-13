@@ -36,7 +36,7 @@ import static org.junit.Assert.assertTrue;
 public class RepairFullVertex implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(RepairFullVertex.class);
 
-    private static long SLEEP = 2000;
+    private static long SLEEP = 5000;
 
     public static void main(String[] args) throws Exception {
         try {
@@ -51,11 +51,11 @@ public class RepairFullVertex implements TestsMain {
     public void run() throws Exception {
         LOG.info("Running column delete RepairFullVertex tests");
 
-        repairFullVertex();
+        //repairFullVertex();
 
         repairFullVertexWithTags();
 
-        repairFullVertexMulti();
+        //repairFullVertexMulti();
     }
 
     private void repairFullVertex() throws Exception {

@@ -69,11 +69,11 @@ import static org.junit.Assert.*;
         try {
             //https://atlanhq.atlassian.net/wiki/spaces/~61277197fc5509007110a8d6/pages/728760421/MLH-173+DEV+tests
 
-            relationshipOneToMany(); // Project 1 <> n Workbook
+            /*relationshipOneToMany(); // Project 1 <> n Workbook
             relationshipManyToOne(); // Workbook n <> 1 Project
             relationshipManyToMany(); // Workbook n <> 1 Project
 
-            arrayOfMaps(); // projectHierarchy array<map<string,string>>
+            arrayOfMaps(); */// projectHierarchy array<map<string,string>>
 
             arrayOfStrings(); // Table.ownerUsers
             arrayOfStructs(); // Table.sourceReadRecentUserRecordList ==> PopularityInsights

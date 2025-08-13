@@ -9,6 +9,7 @@ import okhttp3.Response;
 import org.apache.atlas.model.audit.EntityAuditSearchResult;
 import org.apache.atlas.model.discovery.AtlasSearchResult;
 import com.tests.main.IndexSearchParams;
+import org.apache.atlas.model.instance.AtlasClassification;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasRelationship;
 import org.apache.atlas.model.instance.EntityMutationResponse;
@@ -56,11 +57,17 @@ public class OKClient {
 
     private static String URL_REPAIR_ASSETS = BASE_URL + "/entity/guid/bulk/repairindex";
 
+    private static String URL_REPAIR_CLASSIFICATIONS_MAPPINGS = BASE_URL + "/entity/bulk/repairClassificationsMappings";
+
     private static String URL_INDEX_SEARCH = BASE_URL + "/search/indexsearch";
 
     private static String URL_RELATIONSHIP_BULK = BASE_URL + "/relationship/bulk";
     private static String URL_RELATIONSHIP = BASE_URL + "/relationship";
     private static String URL_RELATIONSHIP_DELETE_GUID = BASE_URL + "/relationship/guid/%s";
+
+
+    private static String URL_ADD_TAGS_BY_TYPE_UNIQUE_ATTR = BASE_URL + "/entity/uniqueAttribute/type/%s/classifications?attr:qualifiedName=%s";
+    private static String URL_DELETE_TAGS_BY_TYPE_UNIQUE_ATTR = BASE_URL + "/entity/uniqueAttribute/type/%s/classification/%s?attr:qualifiedName=%s";
 
     private static OkHttpClient finalClient = null;
 
@@ -278,6 +285,12 @@ public class OKClient {
         executeRequest(request, null);
     }
 
+    public Map<String, String> repairClassificationsMappings(List<String> assetGuids) throws Exception {
+        Request request = getRequestPOST(URL_REPAIR_CLASSIFICATIONS_MAPPINGS, assetGuids);
+
+        return executeRequest(request, Map.class);
+    }
+
     public AtlasRelationship createRelationship(AtlasRelationship relationship) throws Exception {
         Request request = getRequestPOST(URL_RELATIONSHIP, relationship);
 
@@ -307,6 +320,22 @@ public class OKClient {
         Request request = getRequest(url, searchRequest);
 
         return executeRequest(request, Map.class);
+    }
+
+    public void addTagByTypeAPI(String entityTypeName, String entityQualifiedName,
+                                               List<AtlasClassification> classifications) throws Exception {
+        String url = String.format(URL_ADD_TAGS_BY_TYPE_UNIQUE_ATTR, entityTypeName, entityQualifiedName);
+        Request request = getRequest(url, classifications);
+
+        executeRequest(request, null);
+    }
+
+    public void deleteTagByTypeAPI(String entityTypeName, String entityQualifiedName,
+                                               String tagTypeName) throws Exception {
+        String url = String.format(URL_DELETE_TAGS_BY_TYPE_UNIQUE_ATTR, entityTypeName, tagTypeName, entityQualifiedName);
+        Request request = getRequestDELETE(url);
+
+        executeRequest(request, null);
     }
 
     private <T> T executeRequest(Request request, Class<T> returnType) throws Exception {

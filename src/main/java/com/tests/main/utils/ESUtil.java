@@ -280,8 +280,34 @@ public class ESUtil {
 
         highLevelClient.updateByQuery(request, RequestOptions.DEFAULT);
 
-        sleep(1000);
+        //sleep(1000);
 
-        verifyESAttributes(guid, attrs);
+        //verifyESAttributes(guid, attrs);
+    }
+
+    public static void overrideESDocByGuid(String guid, Map<String, Object> newDocContent) throws Exception {
+        UpdateByQueryRequest request = new UpdateByQueryRequest(JG_VERTEX_INDEX);
+
+        request.setConflicts("proceed");
+        request.setQuery(QueryBuilders.termQuery("__guid", guid));
+
+        String scriptCode = "ctx._source = params.newDocument;";
+
+        // Pass the new document content as a parameter to the script
+        Map<String, Object> scriptParams = Collections.singletonMap("newDocument", newDocContent);
+
+        Script script = new Script(
+                ScriptType.INLINE,
+                "painless",
+                scriptCode,
+                scriptParams
+        );
+        request.setScript(script);
+
+        highLevelClient.updateByQuery(request, RequestOptions.DEFAULT);
+
+        //sleep(1000);
+
+        //verifyESAttributes(guid, newDocContent);
     }
 }

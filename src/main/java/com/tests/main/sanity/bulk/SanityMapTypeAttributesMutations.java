@@ -5,6 +5,7 @@ import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
 import com.tests.main.utils.TestUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
+import org.apache.atlas.model.instance.AtlasStruct;
 import org.apache.atlas.model.typedef.AtlasStructDef.AtlasAttributeDef;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
@@ -27,6 +28,7 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
     public static String ATTR_INT_MAP = "intMapTest";
     public static String ATTR_DOUBLE_MAP = "doubleMapTest";
     public static String ATTR_FLOAT_MAP = "floatMapTest";
+    public static String ATTR_STRUCT_MAP = "structMapTest";
 
     public static void main(String[] args) throws Exception {
         try {
@@ -50,6 +52,8 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
             mapOfInts(); // MapTest.intMapTest
             mapOfDoubles(); // MapTest.doubleMapTest
             mapOfFloats(); // MapTest.floatMapTest
+
+            //mapOfStruct(); // MapTest.floatMapTest
         } catch (Exception e) {
             throw e;
         } finally {
@@ -113,7 +117,18 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
         floatMapAttr.setIsUnique(false);
         floatMapAttr.setDescription("Map of string to float attribute for testing");
         mapTestAttributes.add(floatMapAttr);
-        
+
+        // Float map attribute
+        AtlasAttributeDef structMapAttr = new AtlasAttributeDef();
+        structMapAttr.setName(ATTR_STRUCT_MAP);
+        structMapAttr.setTypeName("map<string,PopularityInsights>");
+        structMapAttr.setIsOptional(true);
+        structMapAttr.setIsUnique(false);
+        structMapAttr.setDescription("Map of string to structDef attribute for testing");
+        mapTestAttributes.add(structMapAttr);
+
+
+        //
         mapTestDef.setAttributeDefs(mapTestAttributes);
         
         // Create type definition
@@ -705,4 +720,125 @@ public class SanityMapTypeAttributesMutations implements TestsMain {
 
         LOG.info("<< mapOfFloats");
     }
+
+   /* @Test
+    private static void mapOfStruct() throws Exception {
+        LOG.info(">> mapOfStruct");
+
+        *//*
+         * MapTest.mapOfStruct ==> map<string,PopularityInsights>
+         *
+         * Update MapTest
+         * 1. Add one key-value pair
+         * 2. Add two more key-value pairs
+         * 3. Remove one key-value pair
+         * 4. Add one + Remove one key-value pair
+         * 5. Remove all key-value pairs
+         * 6. Add all 3 key-value pairs back
+         * *//*
+
+        AtlasEntity mapTest = getAtlasEntity(TYPE_MAP_TEST, "maptest_0");
+        String mapTestGuid = createEntity(mapTest).getGuidAssignments().values().iterator().next();
+
+        sleep(SLEEP);
+        mapTest = getEntity(mapTestGuid);
+
+        // 1. Add one key-value pair
+        Map<String, Float> structMap = new HashMap<>();
+
+        AtlasStruct struct = new AtlasStruct("PopularityInsights", mapOf("recordUser", "user_0"));
+        structMap.put();
+
+        mapTest.setAttribute(ATTR_STRUCT_MAP, structs);
+
+        mapTest.setAttribute(ATTR_STRUCT_MAP, structMap);
+        createEntity(mapTest);
+
+        sleep(SLEEP);
+        mapTest = getEntity(mapTestGuid);
+
+        assertNotNull(mapTest.getAttribute(ATTR_STRUCT_MAP));
+        Map<String, Object> rawMap = (Map<String, Object>) mapTest.getAttribute(ATTR_STRUCT_MAP);
+        assertEquals(1, rawMap.size());
+        assertEquals(1.1f, ((Number)rawMap.get("key_1")).floatValue(), 0.0001f);
+
+        // 2. Add two more key-value pairs
+        structMap = new HashMap<>();
+        structMap.put("key_0", 0.0f);
+        structMap.put("key_1", 1.1f);
+        structMap.put("key_2", 2.2f);
+        mapTest.setAttribute(ATTR_STRUCT_MAP, structMap);
+        createEntity(mapTest);
+
+        sleep(SLEEP);
+        mapTest = getEntity(mapTestGuid);
+
+        assertNotNull(mapTest.getAttribute(ATTR_STRUCT_MAP));
+        rawMap = (Map<String, Object>) mapTest.getAttribute(ATTR_STRUCT_MAP);
+        assertEquals(3, rawMap.size());
+        assertEquals(0.0f, ((Number)rawMap.get("key_0")).floatValue(), 0.0001f);
+        assertEquals(1.1f, ((Number)rawMap.get("key_1")).floatValue(), 0.0001f);
+        assertEquals(2.2f, ((Number)rawMap.get("key_2")).floatValue(), 0.0001f);
+
+        // 3. Remove one key-value pair
+        structMap = new HashMap<>();
+        structMap.put("key_0", 0.0f);
+        structMap.put("key_2", 2.2f);
+        mapTest.setAttribute(ATTR_FLOAT_MAP, structMap);
+        createEntity(mapTest);
+
+        sleep(SLEEP);
+        mapTest = getEntity(mapTestGuid);
+
+        assertNotNull(mapTest.getAttribute(ATTR_FLOAT_MAP));
+        rawMap = (Map<String, Object>) mapTest.getAttribute(ATTR_STRUCT_MAP);
+        assertEquals(2, rawMap.size());
+        assertEquals(0.0f, ((Number)rawMap.get("key_0")).floatValue(), 0.0001f);
+        assertEquals(2.2f, ((Number)rawMap.get("key_2")).floatValue(), 0.0001f);
+
+        // 4. Add one + Remove one key-value pair
+        structMap = new HashMap<>();
+        structMap.put("key_1", 1.1f);
+        structMap.put("key_2", 2.2f);
+        mapTest.setAttribute(ATTR_STRUCT_MAP, structMap);
+        createEntity(mapTest);
+
+        sleep(SLEEP);
+        mapTest = getEntity(mapTestGuid);
+
+        assertNotNull(mapTest.getAttribute(ATTR_STRUCT_MAP));
+        rawMap = (Map<String, Object>) mapTest.getAttribute(ATTR_STRUCT_MAP);
+        assertEquals(2, rawMap.size());
+        assertEquals(1.1f, ((Number)rawMap.get("key_1")).floatValue(), 0.0001f);
+        assertEquals(2.2f, ((Number)rawMap.get("key_2")).floatValue(), 0.0001f);
+
+        // 5. Remove all key-value pairs
+        mapTest.setAttribute(ATTR_STRUCT_MAP, null);
+        createEntity(mapTest);
+
+        sleep(SLEEP);
+        mapTest = getEntity(mapTestGuid);
+
+        assertNull(mapTest.getAttribute(ATTR_STRUCT_MAP));
+
+        // 6. Add all 3 key-value pairs back
+        structMap = new HashMap<>();
+        structMap.put("key_0", 0.0f);
+        structMap.put("key_1", 1.1f);
+        structMap.put("key_2", 2.2f);
+        mapTest.setAttribute(ATTR_STRUCT_MAP, structMap);
+        createEntity(mapTest);
+
+        sleep(SLEEP);
+        mapTest = getEntity(mapTestGuid);
+
+        assertNotNull(mapTest.getAttribute(ATTR_STRUCT_MAP));
+        rawMap = (Map<String, Object>) mapTest.getAttribute(ATTR_FLOAT_MAP);
+        assertEquals(3, rawMap.size());
+        assertEquals(0.0f, ((Number)rawMap.get("key_0")).floatValue(), 0.0001f);
+        assertEquals(1.1f, ((Number)rawMap.get("key_1")).floatValue(), 0.0001f);
+        assertEquals(2.2f, ((Number)rawMap.get("key_2")).floatValue(), 0.0001f);
+
+        LOG.info("<< mapOfStruct");
+    }*/
 } 
