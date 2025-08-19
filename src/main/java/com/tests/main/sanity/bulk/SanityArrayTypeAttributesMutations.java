@@ -56,8 +56,8 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
             createTypeDefs();
             arrayOfStrings(); // ComplexTest.stringArrayTest
             arrayOfEnums(); // ComplexTest.enumArrayTest
-            arrayOfMaps(); // TableauWorkbook.projectHierarchy
             arrayOfStructs(); // Table.sourceReadRecentUserRecordList
+            arrayOfMaps(); // TableauWorkbook.projectHierarchy
 
             //arrayOfTagAttachments();
 

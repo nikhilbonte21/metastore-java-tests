@@ -6,32 +6,26 @@ import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasClassification;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-import static com.tests.main.sanity.tag.propagation.PropagationUtils.TASK_TYPE_ADD_PROP;
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.TASK_TYPE_REFRESH_PROP;
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.getTagTypeDefs;
-import static com.tests.main.sanity.tag.propagation.PropagationUtils.getTask;
+import static com.tests.main.sanity.tag.propagation.PropagationUtils.getTasks;
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.verifyEntityHasTags;
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.verifyEntityNotHaveTags;
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.waitForPropagationTasksToCompleteDelayed;
 import static com.tests.main.utils.TestUtil.TYPE_COLUMN;
-import static com.tests.main.utils.TestUtil.TYPE_DATABASE;
-import static com.tests.main.utils.TestUtil.TYPE_SCHEMA;
 import static com.tests.main.utils.TestUtil.TYPE_TABLE;
 import static com.tests.main.utils.TestUtil.cleanUpAll;
 import static com.tests.main.utils.TestUtil.createEntitiesBulk;
 import static com.tests.main.utils.TestUtil.createEntity;
 import static com.tests.main.utils.TestUtil.getAtlasEntity;
 import static com.tests.main.utils.TestUtil.getEntity;
-import static com.tests.main.utils.TestUtil.getObjectId;
 import static com.tests.main.utils.TestUtil.getObjectIdsAsList;
 import static com.tests.main.utils.TestUtil.getRandomName;
 import static com.tests.main.utils.TestUtil.sleep;
@@ -140,13 +134,8 @@ public class NoPropagation implements TestsMain {
         updateEntity(table);
         sleep(SLEEP);
 
-        assertTrue(CollectionUtils.isEmpty(getTask(columnGuid, TASK_TYPE_REFRESH_PROP, "PENDING", currentMillis))) ;
-        assertTrue(CollectionUtils.isEmpty(getTask(tableGuid, TASK_TYPE_REFRESH_PROP, "PENDING", currentMillis)));
-        assertTrue(CollectionUtils.isEmpty(getTask(columnGuid, TASK_TYPE_REFRESH_PROP, "IN_PROGRESS", currentMillis)));
-        assertTrue(CollectionUtils.isEmpty(getTask(tableGuid, TASK_TYPE_REFRESH_PROP, "IN_PROGRESS", currentMillis)));
-        assertTrue(CollectionUtils.isEmpty(getTask(columnGuid, TASK_TYPE_REFRESH_PROP, "COMPLETE", currentMillis)));
-        assertTrue(CollectionUtils.isEmpty(getTask(tableGuid, TASK_TYPE_REFRESH_PROP, "COMPLETE", currentMillis)));
-
+        assertTrue(CollectionUtils.isEmpty(getTasks(columnGuid, TASK_TYPE_REFRESH_PROP, null, currentMillis))) ;
+        assertTrue(CollectionUtils.isEmpty(getTasks(tableGuid, TASK_TYPE_REFRESH_PROP, null, currentMillis)));
 
         sleep(SLEEP);
         // Verify the column has not received the expected classification

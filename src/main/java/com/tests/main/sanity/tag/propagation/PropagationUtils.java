@@ -1,5 +1,6 @@
 package com.tests.main.sanity.tag.propagation;
 
+import com.tests.main.utils.TestUtil;
 import org.apache.atlas.model.instance.AtlasClassification;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.tasks.AtlasTask;
@@ -11,12 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.tests.main.utils.TestUtil.createClassification;
 import static com.tests.main.utils.TestUtil.createClassificationDefs;
 import static com.tests.main.utils.TestUtil.getEntity;
 import static com.tests.main.utils.TestUtil.getRandomName;
@@ -85,10 +87,23 @@ public class PropagationUtils {
         return tagTypeNames;
     }
 
-    public static List<AtlasTask> getTask(String entityGuid, String taskType, String taskStatus, long currentMillis) throws Exception {
-        Map<String, Object> taskSearchRequest = createTaskSearchRequest(entityGuid, taskType, taskStatus, currentMillis);
+    public static List<AtlasTask> getTasks(String entityGuid, String taskType, String taskStatus, long currentMillis) throws Exception {
+        List<AtlasTask> ret = new ArrayList<>(0);
 
-        return (List<AtlasTask>) searchTasks(taskSearchRequest).get("tasks");
+        Map<String, Object> taskSearchRequest;
+        if (StringUtils.isNotEmpty(taskStatus)) {
+            taskSearchRequest = createTaskSearchRequest(entityGuid, taskType, Collections.singletonList(taskStatus), currentMillis);
+        } else {
+            taskSearchRequest = createTaskSearchRequest(entityGuid, taskType, null, currentMillis);
+        }
+
+        Object tasks = searchTasks(taskSearchRequest).get("tasks");
+
+        if (tasks instanceof List) {
+            ret = (List<AtlasTask>) tasks;
+        }
+
+        return ret;
     }
 
     public static void waitForPropagationTasksToCompleteDelayed(String entityGuid, String taskType) throws Exception {
@@ -107,11 +122,13 @@ public class PropagationUtils {
             attempts++;
             try {
                 // Create task search request based on the curl example
-                Map<String, Object> taskSearchRequest = createTaskSearchRequest(entityGuid, taskType, "PENDING");
+                Map<String, Object> taskSearchRequest = createTaskSearchRequest(entityGuid, taskType, Arrays.asList("PENDING", "IN_PROGRESS"));
                 LOG.info("Finding pending task for entityGuid: {}, taskType {} attempts", entityGuid, taskType);
+                //LOG.info(TestUtil.toJson(taskSearchRequest));
 
                 // Search for tasks
                 Map<String, Object> response = searchTasks(taskSearchRequest);
+                //LOG.info(TestUtil.toJson(response));
 
                 // Check if tasks array is empty
                 if (response != null && response.containsKey("tasks")) {
@@ -143,9 +160,9 @@ public class PropagationUtils {
         LOG.warn("Reached maximum attempts ({}) waiting for propagation tasks to complete", maxAttempts);
     }
 
-    public static Map<String, Object> createTaskSearchRequest(String entityGuid, String taskType, String taskStatus, long timeInMillis) throws Exception {
+    public static Map<String, Object> createTaskSearchRequest(String entityGuid, String taskType, List<String> taskStatuses, long timeInMillis) throws Exception {
         Map<String, Object> request = new HashMap<>();
-        Map<String, Object> dsl = mapOf("size", 1);
+        Map<String, Object> dsl = mapOf("size", 100);
 
         // Set sort
         dsl.put("sort", mapOf("__task_timestamp", mapOf("order", "desc")));
@@ -161,12 +178,12 @@ public class PropagationUtils {
             mustConditions.add(mapOf("term", mapOf("__task_entityGuid", entityGuid)));
         }
 
-        if (StringUtils.isNotEmpty(taskStatus)) {
-            mustConditions.add(mapOf("term", mapOf("__task_status.keyword", taskStatus)));
+        if (CollectionUtils.isNotEmpty(taskStatuses)) {
+            mustConditions.add(mapOf("terms", mapOf("__task_status.keyword", taskStatuses)));
         }
 
         if (timeInMillis > 0) {
-            mustConditions.add(mapOf("range", mapOf("created", mapOf("gt", timeInMillis))));
+            mustConditions.add(mapOf("range", mapOf("__task_timestamp", mapOf("gt", timeInMillis))));
         }
 
         dsl.put("query", mapOf("bool", mapOf("must", mustConditions)));
@@ -175,8 +192,8 @@ public class PropagationUtils {
         return request;
     }
 
-    public static Map<String, Object> createTaskSearchRequest(String entityGuid, String taskType, String taskStatus) throws Exception {
-        return createTaskSearchRequest(entityGuid, taskType, taskStatus, 0);
+    public static Map<String, Object> createTaskSearchRequest(String entityGuid, String taskType, List<String> taskStatuses) throws Exception {
+        return createTaskSearchRequest(entityGuid, taskType, taskStatuses, 0);
     }
 
     public static void verifyEntityHasTags(String assetGuid, List<String> expectedTagNames) throws Exception {

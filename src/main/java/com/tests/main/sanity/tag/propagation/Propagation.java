@@ -3,6 +3,7 @@ package com.tests.main.sanity.tag.propagation;
 import com.tests.main.Test;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
+import com.tests.main.utils.FeatureFlagManager;
 import org.apache.atlas.model.instance.AtlasClassification;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.slf4j.Logger;
@@ -149,8 +150,8 @@ public class Propagation implements TestsMain {
         sleep(SLEEP);
 
         // Wait for classification propagation tasks to complete
-        waitForPropagationTasksToCompleteDelayed(columnGuid, TASK_TYPE_ADD_PROP);
-        waitForPropagationTasksToComplete(tableGuid, TASK_TYPE_ADD_PROP);
+        waitForPropagationTasksToCompleteDelayed(tableGuid, TASK_TYPE_ADD_PROP);
+        waitForPropagationTasksToComplete(columnGuid, TASK_TYPE_ADD_PROP);
 
         /*
         {

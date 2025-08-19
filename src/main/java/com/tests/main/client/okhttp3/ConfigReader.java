@@ -27,6 +27,15 @@ public class ConfigReader {
         return properties.getProperty(key, defaultValue);
     }
 
+    public static Boolean getBoolean(String key) {
+        String value = properties.getProperty(key);
+        if (value != null) {
+            return Boolean.parseBoolean(value);
+        } else {
+            return null;
+        }
+    }
+
     public static String[] getStringArray(String key) {
         String val = properties.getProperty(key);
         if (StringUtils.isNotEmpty(val)) {

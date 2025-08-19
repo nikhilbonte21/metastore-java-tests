@@ -9,9 +9,9 @@ public class BulkSanityDriver {
         try {
             new SanityAttributesMutations().run();
             new SanityBasicTypeAttributesMutations().run();
-            new SanityArrayTypeAttributesMutations().run();
             new SanityComplexTypeAttributesMutations().run();
             new SanityMapTypeAttributesMutations().run();
+            new SanityArrayTypeAttributesMutations().run();
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
