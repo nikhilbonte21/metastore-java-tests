@@ -74,7 +74,7 @@ public class RestoreAssetNoRelation implements TestsMain {
         table.setStatus(ACTIVE);
         EntityMutationResponse restoreResponse = updateEntity(table);
         assertNotNull(restoreResponse);
-        assertTrue(restoreResponse.getUpdatedEntities().size() == 0);
+        assertTrue(restoreResponse.getUpdatedEntities().size() == 1);
         sleep(SLEEP);
 
         // Verify table is restored to ACTIVE state

@@ -9,6 +9,7 @@ import org.apache.atlas.model.instance.AtlasStruct;
 import org.apache.atlas.model.typedef.AtlasStructDef.AtlasAttributeDef;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -364,7 +365,10 @@ public class SanityArrayTypeAttributesMutations implements TestsMain {
         sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
-        assertNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
+        //assertNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
+
+        assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
+        assertTrue(CollectionUtils.isEmpty((Collection) workbook.getAttribute(ATTR_PROJECT_HIERARCHY)));
 
         // 6. Add all 3 values back to array
         projectHierarchy = new ArrayList<>(3);

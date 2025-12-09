@@ -37,6 +37,8 @@ public class MoveTermsAcrossGlossaries implements TestsMain {
 
     private static final String CONN_QN = "default/redshift/1688473816/";
 
+    private static final String ATTR_LEXICO = "lexicographicalSortOrder";
+
     public static void main(String[] args) throws Exception {
         try {
             new MoveTermsAcrossGlossaries().run();
@@ -230,6 +232,7 @@ public class MoveTermsAcrossGlossaries implements TestsMain {
          * */
 
         term_0.getRelationshipAttributes().remove(REL_CATEGORIES);
+        term_0.removeAttribute(ATTR_LEXICO);
 
         createEntity(term_0);
         term_0 = TestUtil.getEntity(term_0.getGuid());
@@ -392,6 +395,7 @@ public class MoveTermsAcrossGlossaries implements TestsMain {
 
         boolean failed = false;
         try {
+            term_0.removeAttribute(ATTR_LEXICO);
             term_0 = updateAndGetEntity(term_0);
         } catch (Exception exception) {
             LOG.info(exception.getMessage());
@@ -631,7 +635,7 @@ public class MoveTermsAcrossGlossaries implements TestsMain {
         String cat_1_target_Qname = (String) cat_1_target.getAttribute(QUALIFIED_NAME);
 
         assertEquals(term_0_Qname, getNanoid(term_0_Qname) + "@" + glossarySourceQname);
-        verifyES(term_0.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_CATEGORIES, cat_1_source_Qname));
+        verifyES(term_0.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_CATEGORIES, cat_1_source_Qname, ES_UNIQUE_QN, term_0_Qname));
 
         //LOG.info("glossarySourceQname, glossaryTargetQname => {}, {}", glossarySourceQname, glossaryTargetQname);
         //LOG.info("termQname : {}", term_0_Qname);
@@ -673,6 +677,7 @@ public class MoveTermsAcrossGlossaries implements TestsMain {
         failed = false;
         try {
             term_0.getRelationshipAttributes().remove(REL_CATEGORIES);
+            term_0.removeAttribute(ATTR_LEXICO);
             term_0.setRelationshipAttribute(REL_ANCHOR, new AtlasEntityHeader(TYPE_GLOSSARY, glossaryTarget.getGuid(), null));
             term_0 = updateAndGetEntity(term_0);
 
@@ -702,9 +707,9 @@ public class MoveTermsAcrossGlossaries implements TestsMain {
         term_0 = updateAndGetEntity(term_0);
         term_0_Qname = (String) term_0.getAttribute(QUALIFIED_NAME);
 
-        assertEquals(term_0_Qname, getNanoid(term_0_Qname) + "@" + glossaryTargetQname);
         Thread.sleep(2000);
-        verifyES(term_0.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_CATEGORIES, cat_1_target_Qname));
+        assertEquals(term_0_Qname, getNanoid(term_0_Qname) + "@" + glossaryTargetQname);
+        verifyES(term_0.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_CATEGORIES, cat_1_target_Qname, ES_UNIQUE_QN, term_0_Qname));
 
 
         /*
@@ -719,6 +724,7 @@ public class MoveTermsAcrossGlossaries implements TestsMain {
 
         //
         term_0.setRelationshipAttribute(REL_CATEGORIES, null);
+        term_0.removeAttribute(ATTR_LEXICO);
         term_0.setRelationshipAttribute(REL_ANCHOR, new AtlasEntityHeader(TYPE_GLOSSARY, glossarySource.getGuid(), null));
         term_0 = updateAndGetEntity(term_0);
         term_0_Qname = (String) term_0.getAttribute(QUALIFIED_NAME);

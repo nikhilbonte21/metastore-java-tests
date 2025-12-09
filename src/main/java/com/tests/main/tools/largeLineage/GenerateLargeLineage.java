@@ -28,7 +28,7 @@ public class GenerateLargeLineage {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            //cleanUpAll();
+            cleanUpAll();
         }
     }
 

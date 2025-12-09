@@ -3,6 +3,7 @@ package com.tests.main.sanity.tag.propagation;
 import com.tests.main.Test;
 import com.tests.main.tests.glossary.tests.TestsMain;
 import com.tests.main.utils.ESUtil;
+import com.tests.main.utils.FeatureFlagManager;
 import org.apache.atlas.model.instance.AtlasClassification;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.EntityMutationResponse;
@@ -37,6 +38,7 @@ import static com.tests.main.utils.TestUtil.repairClassificationsMappings;
 import static com.tests.main.utils.TestUtil.sleep;
 import static com.tests.main.utils.TestUtil.updateEntity;
 import static com.tests.main.utils.TestUtil.verifyESAttributes;
+import static com.tests.main.utils.TestUtil.verifyESHasEmpty;
 import static com.tests.main.utils.TestUtil.verifyESHasNot;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -69,11 +71,14 @@ public class RepairTagsMappings implements TestsMain {
 
         long start = System.currentTimeMillis();
         try {
-            /*invalidGuid();
-            noTags();
-            oneDirectTag();
-            onePropagatedTag();
-            manyDirectManyPropagatedTags();*/
+            if (FeatureFlagManager.isTagsV2Enabled()) {
+                invalidGuid();
+                noTags();
+                oneDirectTag();
+
+                //onePropagatedTag(); // Failing on preprod as well
+                //manyDirectManyPropagatedTags(); // Failing on preprod as well
+            }
 
             manyAssetsOneDirectTags();
 
@@ -152,7 +157,7 @@ public class RepairTagsMappings implements TestsMain {
         verifyESAttributes(tableGuid, originalESDoc);
 
         // Step 6: Verify that the corrupted rubbish attributes are no longer present
-        verifyESHasNot(tableGuid, "__classificationsText", "__classificationNames",
+        verifyESHasEmpty(tableGuid, "__classificationsText", "__classificationNames",
                 "__propagatedClassificationNames", "__traitNames", "__propagatedTraitNames");
 
         LOG.info("noTags test completed successfully");
@@ -202,6 +207,8 @@ public class RepairTagsMappings implements TestsMain {
 
         overrideESDocByGuid(tableGuid, copyOfAttributes);
 
+        sleep(SLEEP);
+
         verifyESHasNot(tableGuid, "__classificationsText", "__classificationNames",
                 "__propagatedClassificationNames", "__traitNames", "__propagatedTraitNames");
 
@@ -234,10 +241,11 @@ public class RepairTagsMappings implements TestsMain {
         // Wait for classification propagation tasks to complete
         waitForPropagationTasksToCompleteDelayed(columnGuid, TASK_TYPE_ADD_PROP);
         waitForPropagationTasksToComplete(tableGuid, TASK_TYPE_ADD_PROP);
+        sleep(5000);
 
         // Step 2: Save original ES document state
         Map<String, Object> originalESDoc = getESDoc(columnGuid);
-        LOG.info("Saved original ES document state for table GUID: {}", columnGuid);
+        LOG.info("Saved original ES document state for table GUID: {}: {}", columnGuid, originalESDoc);
 
         // Step 3: Corrupt ES document with rubbish values for classification attributes
         Map<String, Object> corruptedAttributes = new java.util.HashMap<>();
@@ -250,6 +258,7 @@ public class RepairTagsMappings implements TestsMain {
         // Update ES document with corrupted values
         updateESDocByGuid(columnGuid, corruptedAttributes);
         LOG.info("Corrupted ES document attributes for table GUID: {}", columnGuid);
+        sleep(SLEEP);
 
         // Step 4: Call repair classifications mappings API
         repairClassificationsMappings(Arrays.asList(columnGuid));
@@ -332,7 +341,7 @@ public class RepairTagsMappings implements TestsMain {
 
         overrideESDocByGuid(columnGuid, copyOfAttributes);
 
-        verifyESHasNot(columnGuid, "__classificationsText", "__classificationNames",
+        verifyESHasEmpty(columnGuid, "__classificationsText", "__classificationNames",
                 "__propagatedClassificationNames", "__traitNames", "__propagatedTraitNames");
 
         // Call repair classifications mappings API

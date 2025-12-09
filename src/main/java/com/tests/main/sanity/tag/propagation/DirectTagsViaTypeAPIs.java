@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.getTagTypeDefs;
 import static com.tests.main.sanity.tag.propagation.PropagationUtils.verifyEntityHasTags;
+import static com.tests.main.sanity.tag.propagation.PropagationUtils.verifyEntityNotHaveTags;
 import static com.tests.main.utils.TestUtil.TYPE_TABLE;
 import static com.tests.main.utils.TestUtil.addTagByTypeAPI;
 import static com.tests.main.utils.TestUtil.cleanUpAll;
@@ -84,6 +85,8 @@ public class DirectTagsViaTypeAPIs implements TestsMain {
         for (String tagTypeName: tagTypeNames) {
             deleteTagByTypeAPI(TYPE_TABLE, tableQualifiedName, tagTypeName);
         }
+
+        verifyEntityNotHaveTags(tableGuid, tagTypeNames);
 
         LOG.info("<< attachTag");
     }

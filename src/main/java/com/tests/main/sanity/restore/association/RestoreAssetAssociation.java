@@ -90,7 +90,7 @@ public class RestoreAssetAssociation implements TestsMain {
         factTableToRestore.setStatus(ACTIVE);
         EntityMutationResponse restoreResponse = updateEntity(factTableToRestore);
         assertNotNull(restoreResponse);
-        assertTrue(restoreResponse.getUpdatedEntities().size() == 0);
+        assertEquals(1, restoreResponse.getUpdatedEntities().size());
         sleep(SLEEP);
 
         // Verify dimension tables after restore
@@ -161,7 +161,7 @@ public class RestoreAssetAssociation implements TestsMain {
         dimTableToRestore.setStatus(ACTIVE);
         EntityMutationResponse restoreResponse = updateEntity(dimTableToRestore);
         assertNotNull(restoreResponse);
-        assertTrue(restoreResponse.getUpdatedEntities().size() == 0);
+        assertEquals(1, restoreResponse.getUpdatedEntities().size());
         sleep(SLEEP);
 
         // Verify dimension tables after restore

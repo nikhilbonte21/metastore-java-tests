@@ -26,7 +26,7 @@ public class DeletePropagationsTaskTest implements TestsMain {
         try {
             new DeletePropagationsTaskTest().run();
         } finally {
-            //cleanUpAll();
+            cleanUpAll();
             ESUtil.close();
         }
     }

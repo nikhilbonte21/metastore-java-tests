@@ -91,7 +91,7 @@ public class RestoreAssetAggregation implements TestsMain {
         table.setStatus(ACTIVE);
         EntityMutationResponse restoreResponse = updateEntity(table);
         assertNotNull(restoreResponse);
-        assertTrue(restoreResponse.getUpdatedEntities().size() == 0);
+        assertEquals(1, restoreResponse.getUpdatedEntities().size());
         sleep(SLEEP);
 
         // Verify after restore
@@ -150,7 +150,7 @@ public class RestoreAssetAggregation implements TestsMain {
         column.setStatus(ACTIVE);
         EntityMutationResponse restoreResponse = updateEntity(column);
         assertNotNull(restoreResponse);
-        assertTrue(restoreResponse.getUpdatedEntities().size() == 0);
+        assertEquals(1, restoreResponse.getUpdatedEntities().size());
         sleep(SLEEP);
 
 

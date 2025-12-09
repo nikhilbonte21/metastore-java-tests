@@ -1,18 +1,18 @@
 package com.tests.main;
 
+import com.tests.main.utils.TestUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasEntityHeader;
 import org.apache.atlas.model.notification.EntityNotification;
 import org.apache.atlas.type.AtlasType;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.TopicPartition;
-import org.awaitility.Awaitility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PreDestroy;
+import java.io.Closeable;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,15 +20,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-public class AtlasKafkaConsumer {
-    private static final Logger LOG = LoggerFactory.getLogger(AtlasKafkaConsumer.class);
+public class AtlasKafkaConsumerAsync implements Runnable, Closeable {
+    private static final Logger LOG = LoggerFactory.getLogger(AtlasKafkaConsumerAsync.class);
 
-    private static KafkaConsumer<String, String> CONSUMER = null;
-    static {
+    private KafkaConsumer<String, String> consumer = null;
 
+    private final Map<String, List<KafkaMessage>> messages = new HashMap<>();
+
+    public AtlasKafkaConsumerAsync() {
         String bootstrapServers = "localhost:9092";
         String groupId = "atlas";
 
@@ -41,72 +41,50 @@ public class AtlasKafkaConsumer {
         props.put("auto.offset.reset", "latest");
 
         // Create consumer
-        CONSUMER = new KafkaConsumer<>(props);
+        this.consumer = new KafkaConsumer<>(props);
 
         // Subscribe to topic
-        CONSUMER.subscribe(Collections.singletonList("ATLAS_ENTITIES"));
+        consumer.subscribe(Collections.singletonList("ATLAS_ENTITIES"));
 
-        //CONSUMER.assign(Collections.singletonList(partitionToSeek));
+        LOG.info("Created AtlasKafkaConsumerAsync");
+    }
 
+    @Override
+    public void run() {
         // Poll in a loop until partitions are assigned.
         // This is necessary before we can manually seek.
-        while (CONSUMER.assignment().isEmpty()) {
+        while (consumer.assignment().isEmpty()) {
             LOG.info("Waiting for partition assignment...");
-            CONSUMER.poll(Duration.ofMillis(1000));
+            consumer.poll(Duration.ofMillis(1000));
         }
 
         // Now that we have partitions, seek to the end of all of them
         LOG.info("Partitions assigned. Seeking to end of all assigned partitions.");
-        CONSUMER.seekToEnd(CONSUMER.assignment());
+        consumer.seekToEnd(consumer.assignment());
+        while (true) {
+            LOG.info("Polling for new Kafka messages...");
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
 
-        LOG.info("Created AtlasKafkaConsumer");
-    }
+            // Convert ConsumerRecords to a List
+            List<ConsumerRecord<String, String>> recordList = new ArrayList<>();
+            records.forEach(recordList::add);
 
-/*    public static void poll(int numberOfRecords) {
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> {
-            pollMessages(numberOfRecords);
-            return true;
-        });
-    }*/
+            LOG.info("Found {} messages...", recordList.size());
+            recordList.forEach(x -> {
+                KafkaMessage message = deSerialise(x);
+                List<KafkaMessage> currentMessages = null;
 
-    public static void init() {
+                if (messages.containsKey(message.getEntity().getGuid())) {
+                    currentMessages = messages.get(message.getEntity().getGuid());
+                } else {
+                    currentMessages = new ArrayList<>(1);
+                }
+                currentMessages.add(0, message);
+                messages.put(message.getEntity().getGuid(), currentMessages);
+            });
 
-    }
-
-    public static Map<String, KafkaMessage> pollMessages(int numberOfRecords) {
-        Map<String, KafkaMessage> messages = new HashMap<>();
-
-        LOG.info("Checking for kafka messages...");
-        ConsumerRecords<String, String> records = CONSUMER.poll(10000);
-
-        // Convert ConsumerRecords to a List
-        List<ConsumerRecord<String, String>> recordList = new ArrayList<>();
-        records.forEach(recordList::add);
-
-        LOG.info("Found total {} kafka messages", recordList.size());
-
-        if (numberOfRecords > 0) {
-            // Get the last n records
-            int size = recordList.size();
-            recordList = recordList.subList(Math.max(0, size - numberOfRecords), size);
+            TestUtil.sleep(5000);
         }
-
-        recordList.forEach(x -> {
-            KafkaMessage message = deSerialise(x);
-            messages.put(message.getEntity().getGuid(), message);
-        });
-
-        return messages;
-    }
-
-    public static Map<String, KafkaMessage> pollMessages() {
-        return pollMessages(-1);
-    }
-
-    @PreDestroy
-    public void preDestroy() {
-        LOG.info("Closing AtlasKafkaConsumer");
-        CONSUMER.close();
     }
 
     private static KafkaMessage deSerialise(ConsumerRecord<String, String> record) {
@@ -123,5 +101,15 @@ public class AtlasKafkaConsumer {
         message.setOperationType(EntityNotification.EntityNotificationV2.OperationType.valueOf(rawMessage.get("operationType").toString()));
 
         return message;
+    }
+
+    public List<KafkaMessage> getMessages(String guid) {
+        return messages.get(guid);
+    }
+
+    @Override
+    public void close() throws IOException {
+        LOG.info("Closing AtlasKafkaConsumerAsync");
+        consumer.close();
     }
 }

@@ -7,6 +7,7 @@ import com.tests.main.client.okhttp3.OKClient;
 import com.tests.main.lineage.AtlasLineageInfo;
 import com.tests.main.lineage.AtlasLineageRequest;
 import okhttp3.OkHttpClient;
+import org.apache.atlas.model.audit.EntityAuditEventV2;
 import org.apache.atlas.model.audit.EntityAuditSearchResult;
 import org.apache.atlas.model.discovery.AtlasSearchResult;
 import com.tests.main.IndexSearchParams;
@@ -70,6 +71,7 @@ public class TestUtil {
     public static final String TYPE_POLICY = "AuthPolicy";
 
     public static final String ES_GLOSSARY = "__glossary";
+    public static final String ES_UNIQUE_QN = "__u_qualifiedName";
     public static final String ES_CATEGORIES = "__categories";
     public static final String ES_MEANINGS = "__meanings";
     public static final String ES_MEANING_NAMES = "__meaningNames";
@@ -82,6 +84,7 @@ public class TestUtil {
     public static final String REL_TERMS = "terms";
     public static final String REL_CHILDREN_CATS = "childrenCategories";
     public static final String REL_MEANINGS = "meanings";
+    public static final String REL_ASSIGNED_ENTITIES = "assignedEntities";
 
 
     public static final String PREFIX_QUERY_QN       = "/default/collection/admin";
@@ -318,10 +321,14 @@ public class TestUtil {
     public static AtlasEntity createAndGetEntity(AtlasEntity entity) throws Exception {
         EntityMutationResponse response = createEntity(new AtlasEntity.AtlasEntityWithExtInfo(entity));
 
+        sleep(2000);
+
         return getEntity(response.getCreatedEntities().get(0).getGuid());
     }
     public static AtlasEntity updateAndGetEntity(AtlasEntity entity) throws Exception {
         EntityMutationResponse response = createEntity(new AtlasEntity.AtlasEntityWithExtInfo(entity));
+
+        sleep(2000);
 
         return getEntity(response.getUpdatedEntities().get(0).getGuid());
     }
@@ -367,6 +374,19 @@ public class TestUtil {
         params.put("dsl", dsl);
 
         return getAtlasClient().getEntityAudit(params);
+    }
+
+    public static List<EntityAuditEventV2> getEntityAudit(String entityGuid, long timeInMillis) throws Exception {
+        Map params = new HashMap<>();
+        Map dsl = mapOf("sort", mapOf("created", mapOf("order", "desc")));
+        dsl.put("query", mapOf("bool", mapOf("must", Arrays.asList(
+                mapOf("term", mapOf("entityId", entityGuid)),
+                mapOf("range", mapOf("created", mapOf("gt", timeInMillis))),
+                mapOf("term", mapOf("headers.x-atlan-request-id", "tests-2.0-client"))
+        ))));
+        params.put("dsl", dsl);
+
+        return getAtlasClient().getEntityAudit(params).getEntityAudits();
     }
 
     public static Map mapOf(Object... items) throws Exception {
@@ -879,6 +899,10 @@ public class TestUtil {
         return (String) entity.getAttribute("qualifiedName");
     }
 
+    public static String getName(AtlasEntity entity) {
+        return (String) entity.getAttribute("name");
+    }
+
     public static String concat(String... items) {
         StringBuilder sb = new StringBuilder();
         int size = items.length;
@@ -912,7 +936,7 @@ public class TestUtil {
     }
 
     public static void verifyESInLoop(String entityGuid, Map<String, String> whiteMap, String... blackAttrs) throws Exception {
-        long maxWait = 90 * 1000;
+        long maxWait = 50 * 1000;
         long interval = 10 * 1000;
         long elapsed = 0;
 
@@ -1001,6 +1025,29 @@ public class TestUtil {
             if (ArrayUtils.isNotEmpty(blackAttrs)) {
                 for (String attrName : blackAttrs) {
                     assertNull(attrName, sourceAsMap.get(attrName));
+                }
+            }
+        }
+    }
+
+    public static void verifyESHasEmpty(String entityGuid, String... attrs) throws Exception {
+
+        SearchHit[] searchHit = ESUtil.searchWithGuid(entityGuid).getHits().getHits();
+
+        for (SearchHit hit : searchHit) {
+            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+
+            if (ArrayUtils.isNotEmpty(attrs)) {
+                for (String attrName : attrs) {
+                    Object value = sourceAsMap.get(attrName);
+                    if (value instanceof String) {
+                        assertEquals(attrName, "", (String) value);
+                    } else if (value instanceof Collection) {
+                        assertNotNull(attrName, value);
+                        assertEquals(attrName, 0, ((Collection) value).size() );
+                    } else {
+                        throw new Exception("Unhandled value type " + value.getClass().getName());
+                    }
                 }
             }
         }

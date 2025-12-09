@@ -6,10 +6,12 @@ import com.tests.main.utils.ESUtil;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasObjectId;
 import org.apache.atlas.model.instance.AtlasStruct;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +71,11 @@ import static org.junit.Assert.*;
         try {
             //https://atlanhq.atlassian.net/wiki/spaces/~61277197fc5509007110a8d6/pages/728760421/MLH-173+DEV+tests
 
-            /*relationshipOneToMany(); // Project 1 <> n Workbook
+            relationshipOneToMany(); // Project 1 <> n Workbook
             relationshipManyToOne(); // Workbook n <> 1 Project
             relationshipManyToMany(); // Workbook n <> 1 Project
 
-            arrayOfMaps(); */// projectHierarchy array<map<string,string>>
+            arrayOfMaps();// projectHierarchy array<map<string,string>>
 
             arrayOfStrings(); // Table.ownerUsers
             arrayOfStructs(); // Table.sourceReadRecentUserRecordList ==> PopularityInsights
@@ -734,7 +736,10 @@ import static org.junit.Assert.*;
         sleep(SLEEP);
         workbook = getEntity(workbookGuid);
 
-        assertNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
+        //assertNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
+
+        assertNotNull(workbook.getAttribute(ATTR_PROJECT_HIERARCHY));
+        assertTrue( CollectionUtils.isEmpty((Collection)workbook.getAttribute(ATTR_PROJECT_HIERARCHY)));
 
         // 6. Add all 3 TableauWorksheets back to list
         projectHierarchy = new ArrayList<>(3);

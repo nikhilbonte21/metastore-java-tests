@@ -13,6 +13,7 @@ import java.util.Collections;
 import static com.tests.main.utils.TestUtil.ES_CATEGORIES;
 import static com.tests.main.utils.TestUtil.ES_GLOSSARY;
 import static com.tests.main.utils.TestUtil.ES_PARENT_CAT;
+import static com.tests.main.utils.TestUtil.ES_UNIQUE_QN;
 import static com.tests.main.utils.TestUtil.NAME;
 import static com.tests.main.utils.TestUtil.QUALIFIED_NAME;
 import static com.tests.main.utils.TestUtil.REL_ANCHOR;
@@ -30,7 +31,9 @@ import static com.tests.main.utils.TestUtil.getAtlasEntity;
 import static com.tests.main.utils.TestUtil.getEntity;
 import static com.tests.main.utils.TestUtil.getNanoid;
 import static com.tests.main.utils.TestUtil.mapOf;
+import static com.tests.main.utils.TestUtil.sleep;
 import static com.tests.main.utils.TestUtil.updateAndGetEntity;
+import static com.tests.main.utils.TestUtil.updateEntity;
 import static com.tests.main.utils.TestUtil.verifyESInLoop;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -40,11 +43,15 @@ import static org.junit.Assert.assertTrue;
 public class MoveCategoriesAcrossGlossaries implements TestsMain {
     private static final Logger LOG = LoggerFactory.getLogger(MoveCategoriesAcrossGlossaries.class);
 
+    protected static final int SLEEP = 2000;
+
     private static final String DUPLICATE_CATEGORY_ERROR_CODE = "ATLAS-409-00-00A";
     private static final String DUPLICATE_CATEGORY_ERROR_MESSAGE = "Glossary category with name %s already exists on this level";
 
     private static final String PARENT_CAT_FROM_OTHER_GLOSSARY_ERROR_CODE = "ATLAS-400-00-0015";
     private static final String PARENT_CAT_FROM_OTHER_GLOSSARY_ERROR_MESSAGE = "Parent category from another Anchor(glossary) not supported";
+
+    private static final String ATTR_LEXICO = "lexicographicalSortOrder";
 
     public static void main(String[] args) throws Exception {
         try {
@@ -230,18 +237,23 @@ public class MoveCategoriesAcrossGlossaries implements TestsMain {
         AtlasEntity glossary_0 = createGlossary();
 
         AtlasEntity cat_0 = getAtlasEntity(TYPE_CATEGORY, "cat_0");
+        cat_0.setAttribute(NAME, "cat_0");
         cat_0.setRelationshipAttribute(REL_ANCHOR, new AtlasEntityHeader(TYPE_GLOSSARY, glossary_0.getGuid(), null));
         cat_0 = createAndGetEntity(cat_0);
 
         AtlasEntity cat_1 = getAtlasEntity(TYPE_CATEGORY, "cat_1");
+        cat_1.setAttribute(NAME, "cat_1");
         cat_1.setRelationshipAttribute(REL_ANCHOR, new AtlasEntityHeader(TYPE_GLOSSARY, glossary_0.getGuid(), null));
         cat_1.setRelationshipAttribute(REL_PARENT_CAT, new AtlasEntityHeader(TYPE_CATEGORY, cat_0.getGuid(), null));
         cat_1 = createAndGetEntity(cat_1);
 
         AtlasEntity cat_2 = getAtlasEntity(TYPE_CATEGORY, "cat_2");
+        cat_2.setAttribute(NAME, "cat_2");
         cat_2.setRelationshipAttribute(REL_ANCHOR, new AtlasEntityHeader(TYPE_GLOSSARY, glossary_0.getGuid(), null));
         cat_2.setRelationshipAttribute(REL_PARENT_CAT, new AtlasEntityHeader(TYPE_CATEGORY, cat_0.getGuid(), null));
         cat_2 = createAndGetEntity(cat_2);
+
+        sleep(SLEEP);
 
         String glossary_0_Qname = (String) glossary_0.getAttribute(QUALIFIED_NAME);
         String cat_0_Qname = (String) cat_0.getAttribute(QUALIFIED_NAME);
@@ -257,8 +269,6 @@ public class MoveCategoriesAcrossGlossaries implements TestsMain {
 
         LOG.info("glossary_0 => {}", glossary_0_Qname);
 
-        String cat_0_name = (String) cat_0.getAttribute(NAME);
-        String cat_1_name = (String) cat_1.getAttribute(NAME);
         String cat_2_name = (String) cat_2.getAttribute(NAME);
 
 
@@ -269,6 +279,7 @@ public class MoveCategoriesAcrossGlossaries implements TestsMain {
         boolean failed = false;
         try {
             Thread.sleep(3000);
+            cat_1.removeAttribute(ATTR_LEXICO);
             cat_1 = updateAndGetEntity(cat_1);
         } catch (Exception exception) {
             LOG.info(exception.getMessage());
@@ -701,6 +712,7 @@ public class MoveCategoriesAcrossGlossaries implements TestsMain {
 
         failed = false;
         try {
+            cat_1_source.removeAttribute(ATTR_LEXICO);
             cat_1_source = updateAndGetEntity(cat_1_source);
         } catch (Exception exception) {
             LOG.info(exception.getMessage());
@@ -783,6 +795,22 @@ public class MoveCategoriesAcrossGlossaries implements TestsMain {
 
         AtlasEntity glossarySource = createGlossary();
         AtlasEntity glossaryTarget = createGlossary();
+
+        /*
+        * cat_0 -> cat_0_0      -> cat_0_1    ->   cat_0_2   ->   term_0_3
+        *                       -> term_0_1
+        *       -> cat_0_0_an
+        *       -> term_0_0
+        *
+        * cat_1 -> cat_1_0
+        *       -> cat_1_1
+        *       -> cat_1_2
+        *
+        * cat_2 -> term_2_0
+        *       -> term_2_1
+        *       -> term_2_2
+        *
+        * */
 
         AtlasEntity cat_0 = getAtlasEntity(TYPE_CATEGORY, "cat_0");
         cat_0.setRelationshipAttribute(REL_ANCHOR, new AtlasEntityHeader(TYPE_GLOSSARY, glossarySource.getGuid(), null));
@@ -977,52 +1005,69 @@ public class MoveCategoriesAcrossGlossaries implements TestsMain {
         term_2_2_qname = (String) term_2_2.getAttribute(QUALIFIED_NAME);
 
         assertEquals(cat_0_qname, getNanoid(cat_0_qname) + "@" + glossaryTargetQname);
-        verifyESInLoop(cat_0.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname), ES_PARENT_CAT);
+        verifyESInLoop(cat_0.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_UNIQUE_QN, cat_0_qname), ES_PARENT_CAT);
 
         assertEquals(cat_1_qname, getNanoid(cat_1_qname) + "@" + glossarySourceQname);
-        verifyESInLoop(cat_1.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname), ES_PARENT_CAT);
+        verifyESInLoop(cat_1.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_UNIQUE_QN, cat_1_qname), ES_PARENT_CAT);
 
         assertEquals(cat_2_qname, getNanoid(cat_2_qname) + "@" + glossarySourceQname);
-        verifyESInLoop(cat_2.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname), ES_PARENT_CAT);
+        verifyESInLoop(cat_2.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_UNIQUE_QN, cat_2_qname), ES_PARENT_CAT);
 
         assertEquals(cat_0_0_qname, getNanoid(cat_0_0_qname) + "@" + glossaryTargetQname);
-        verifyESInLoop(cat_0_0.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_PARENT_CAT, cat_0_qname));
+        verifyESInLoop(cat_0_0.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_PARENT_CAT, cat_0_qname, ES_UNIQUE_QN, cat_0_0_qname));
 
         assertEquals(cat_0_0_an_qname, getNanoid(cat_0_0_an_qname) + "@" + glossaryTargetQname);
-        verifyESInLoop(cat_0_0_an.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_PARENT_CAT, cat_0_qname));
+        verifyESInLoop(cat_0_0_an.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_PARENT_CAT, cat_0_qname, ES_UNIQUE_QN, cat_0_0_an_qname));
 
         assertEquals(term_0_0_qname, getNanoid(term_0_0_qname) + "@" + glossaryTargetQname);
-        verifyESInLoop(term_0_0.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_CATEGORIES, cat_0_qname));
+        verifyESInLoop(term_0_0.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_CATEGORIES, cat_0_qname, ES_UNIQUE_QN, term_0_0_qname));
 
         assertEquals(cat_0_1_qname, getNanoid(cat_0_1_qname) + "@" + glossaryTargetQname);
-        verifyESInLoop(cat_0_1.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_PARENT_CAT, cat_0_0_qname));
+        verifyESInLoop(cat_0_1.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_PARENT_CAT, cat_0_0_qname, ES_UNIQUE_QN, cat_0_1_qname));
 
         assertEquals(term_0_1_qname, getNanoid(term_0_1_qname) + "@" + glossaryTargetQname);
-        verifyESInLoop(term_0_1.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_CATEGORIES, cat_0_0_qname));
+        verifyESInLoop(term_0_1.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_CATEGORIES, cat_0_0_qname, ES_UNIQUE_QN, term_0_1_qname));
 
         assertEquals(cat_0_2_qname, getNanoid(cat_0_2_qname) + "@" + glossaryTargetQname);
-        verifyESInLoop(cat_0_2.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_PARENT_CAT, cat_0_1_qname));
+        verifyESInLoop(cat_0_2.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_PARENT_CAT, cat_0_1_qname, ES_UNIQUE_QN, cat_0_2_qname));
 
         assertEquals(term_0_3_qname, getNanoid(term_0_3_qname) + "@" + glossaryTargetQname);
-        verifyESInLoop(term_0_3.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_CATEGORIES, cat_0_2_qname));
+        verifyESInLoop(term_0_3.getGuid(), mapOf(ES_GLOSSARY, glossaryTargetQname, ES_CATEGORIES, cat_0_2_qname, ES_UNIQUE_QN, term_0_3_qname));
 
         assertEquals(cat_1_0_qname, getNanoid(cat_1_0_qname) + "@" + glossarySourceQname);
-        verifyESInLoop(cat_1_0.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_PARENT_CAT, cat_1_qname));
+        verifyESInLoop(cat_1_0.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_PARENT_CAT, cat_1_qname, ES_UNIQUE_QN, cat_1_0_qname));
 
         assertEquals(cat_1_1_qname, getNanoid(cat_1_1_qname) + "@" + glossarySourceQname);
-        verifyESInLoop(cat_1_1.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_PARENT_CAT, cat_1_qname));
+        verifyESInLoop(cat_1_1.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_PARENT_CAT, cat_1_qname, ES_UNIQUE_QN, cat_1_1_qname));
 
         assertEquals(cat_1_2_qname, getNanoid(cat_1_2_qname) + "@" + glossarySourceQname);
-        verifyESInLoop(cat_1_2.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_PARENT_CAT, cat_1_qname));
+        verifyESInLoop(cat_1_2.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_PARENT_CAT, cat_1_qname, ES_UNIQUE_QN, cat_1_2_qname));
 
         assertEquals(term_2_0_qname, getNanoid(term_2_0_qname) + "@" + glossarySourceQname);
-        verifyESInLoop(term_2_0.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_CATEGORIES, cat_2_qname));
+        verifyESInLoop(term_2_0.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_CATEGORIES, cat_2_qname, ES_UNIQUE_QN, term_2_0_qname));
 
         assertEquals(term_2_1_qname, getNanoid(term_2_1_qname) + "@" + glossarySourceQname);
-        verifyESInLoop(term_2_1.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_CATEGORIES, cat_2_qname));
+        verifyESInLoop(term_2_1.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_CATEGORIES, cat_2_qname, ES_UNIQUE_QN, term_2_1_qname));
 
         assertEquals(term_2_2_qname, getNanoid(term_2_2_qname) + "@" + glossarySourceQname);
-        verifyESInLoop(term_2_2.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_CATEGORIES, cat_2_qname));
+        verifyESInLoop(term_2_2.getGuid(), mapOf(ES_GLOSSARY, glossarySourceQname, ES_CATEGORIES, cat_2_qname, ES_UNIQUE_QN, term_2_2_qname));
+
+        // update description of nested category & term
+
+        cat_0_2 = getEntity(cat_0_2.getGuid());
+        term_0_3 = getEntity(term_0_3.getGuid());
+
+        cat_0_2.removeAttribute(ATTR_LEXICO);
+        term_0_3.removeAttribute(ATTR_LEXICO);
+
+        cat_0_2.setGuid("-1");
+        term_0_3.setGuid("-2");
+
+        cat_0_2.setAttribute("description", "12345");
+        term_0_3.setAttribute("description", "12345");
+
+        updateEntity(cat_0_2);
+        updateEntity(term_0_3);
 
         LOG.info(">> moveHeavyCategory");
     }

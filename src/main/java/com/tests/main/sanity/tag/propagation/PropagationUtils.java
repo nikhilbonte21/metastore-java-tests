@@ -134,6 +134,9 @@ public class PropagationUtils {
                 if (response != null && response.containsKey("tasks")) {
                     List<Map<String, Object>> tasks = (List<Map<String, Object>>) response.get("tasks");
                     if (tasks == null || tasks.isEmpty()) {
+                        if (attempts == maxAttempts) {
+                            throw new Exception("Exhausted all reties, task is still not completed");
+                        }
                         LOG.info("All propagation tasks completed after {} attempts", attempts);
                         return;
                     } else {

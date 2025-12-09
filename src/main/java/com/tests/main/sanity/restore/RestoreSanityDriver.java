@@ -76,11 +76,11 @@ public class RestoreSanityDriver {
                     executor.shutdownNow();
                 }
 
-                cleanUpAll();
+                //cleanUpAll();
                 ESUtil.close();
             }
         } finally {
-            cleanUpAll();
+            //cleanUpAll();
             ESUtil.close();
         }
     }

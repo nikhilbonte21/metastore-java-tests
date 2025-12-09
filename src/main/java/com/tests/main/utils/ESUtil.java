@@ -2,6 +2,7 @@ package com.tests.main.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tests.main.client.okhttp3.ConfigReader;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.search.SearchRequest;
@@ -38,7 +39,7 @@ public class ESUtil {
     private static final Logger       LOG = LoggerFactory.getLogger(ESUtil.class);
     public static RestClient          lowLevelClient;
     public static RestHighLevelClient highLevelClient;
-    public static String              JG_VERTEX_INDEX = "janusgraph_vertex_index";
+    public static String              JG_VERTEX_INDEX = ConfigReader.getString("search.vertex.index.name");
     public static String              index_access_logs = "ranger-audit";
 
     private static RequestOptions requestOptions = RequestOptions.DEFAULT;

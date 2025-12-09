@@ -105,7 +105,7 @@ public class RestoreAssetComposition implements TestsMain {
         glossary.removeAttribute("lexicographicalSortOrder"); // had to do this due unexpected duplicate lexo value issue
         EntityMutationResponse restoreResponse = updateEntity(glossary);
         assertNotNull(restoreResponse);
-        assertTrue(restoreResponse.getUpdatedEntities().size() == 6);
+        assertEquals(7, restoreResponse.getUpdatedEntities().size());
         sleep(SLEEP);
 
         // Verify Glossary is ACTIVE

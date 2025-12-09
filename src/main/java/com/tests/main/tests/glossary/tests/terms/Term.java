@@ -37,7 +37,7 @@ public class Term {
         } catch (Exception e){
             throw e;
         } finally {
-            //cleanUpAll();
+            cleanUpAll();
             LOG.info("Completed running Terms tests, took {} seconds", (System.currentTimeMillis() - start) / 1000 );
         }
     }

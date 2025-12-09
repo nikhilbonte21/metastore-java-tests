@@ -51,11 +51,12 @@ public class RepairFullVertex implements TestsMain {
     public void run() throws Exception {
         LOG.info("Running column delete RepairFullVertex tests");
 
+        //TODO
         //repairFullVertex();
 
         repairFullVertexWithTags();
 
-        //repairFullVertexMulti();
+        repairFullVertexMulti();
     }
 
     private void repairFullVertex() throws Exception {
